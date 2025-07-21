@@ -91,7 +91,7 @@ static reg_t *regs_table = NULL;
 static vmem_t *vmem_table = NULL;
 
 struct ser_struct ser = { 0 };
-static uint8_t ser_buf[S3P_MAX_RX_TX_SIZE];
+static uint8_t ser_buf[S3P_MAX_FRAME_SIZE];
 static uint8_t seq_num;
 static uint8_t node_id = DEF_NODE_ID;
 static uint8_t manager_id = DEF_MANAGER_ID;
@@ -238,7 +238,7 @@ static bool wait_response(packet_t *pkt_in)
             usleep(BYTE_DELAY);
             continue;
         }
-        if (rx_len < S3P_MAX_RX_TX_SIZE)
+        if (rx_len < S3P_MAX_FRAME_SIZE)
             ser_buf[rx_len++] = byt;
 
         if (byt == S3P_COBS_DELIM) {

@@ -7,7 +7,7 @@
 // Version
 #define S3P_VERSION           0x0100    // 1.00
 
-#define S3P_MAX_RX_TX_SIZE    1024
+#define S3P_MAX_FRAME_SIZE    1024
 #define S3P_MAX_PKT_SIZE      1018
 #define S3P_MAX_DATA_SIZE     1010
 #define S3P_MAX_CHUNK_SIZE    1004

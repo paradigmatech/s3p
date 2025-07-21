@@ -94,7 +94,7 @@ uint16_t s3p_make_frame(uint8_t *buf, const packet_t *pkt_out)
     DBG(2, "         data_len=%u, crc=0x%04X\n",
             pkt_out->data_len, crc);
 
-    cobs_encode_result res = cobs_encode(buf, S3P_MAX_RX_TX_SIZE,
+    cobs_encode_result res = cobs_encode(buf, S3P_MAX_FRAME_SIZE,
             pkt_out_buf, pkt_size);
 
     if (res.status == COBS_ENCODE_OK) {
