@@ -136,6 +136,7 @@ static void show_help(void)
     DBG(0, "\n");
     DBG(0, "Commands:\n");
     DBG(0, "  node [node_id(d)]                         - show or set remote node id\n");
+    DBG(0, "  info                                      - get node S3P version info\n");
     DBG(0, "  ping                                      - ping remote node\n");
     DBG(0, "  reboot                                    - reboot remote node\n");
     DBG(0, "  get <1st_reg(d)>[+nregs(d)]               - read nregs starting from first_reg\n");
@@ -153,7 +154,6 @@ static void show_help(void)
     DBG(0, "\n");
     if (en_adv_cmds) {
         DBG(0, "Advanced Commands:\n");
-        DBG(0, "  tinfo                                     - get table info\n");
         DBG(0, "  cmd <cmd_id(h)> <value(u32)>              - exec custom command <cmd_id> with u32 arg\n");
         DBG(0, "\n");
     }
@@ -487,13 +487,14 @@ static void exec_rstr(const uint16_t reg_id)
     DBG(0, "%3u %-20s %3s   '%s'\n", id, name, value_type_str(vt), str);
 }
 
-static void exec_tinfo(void)
+static void exec_info(void)
 {
     packet_t pkt_out;
     packet_t pkt_in;
     int data_len = 0;
     uint16_t size;
     uint8_t code;
+    uint16_t ver = 0;
     uint16_t reg_min_id = 0;
     uint16_t reg_max_id = 0;
     uint16_t regs_cnt = 0;
@@ -502,7 +503,7 @@ static void exec_tinfo(void)
     s3p_init_pkt_out(&pkt_out, manager_id, node_id, seq_inc());
     // Header
     pkt_out.data_len = data_len;
-    pkt_out.type = PT_TABLE_INFO;
+    pkt_out.type = PT_S3P_INFO;
     size = s3p_make_frame(ser_buf, &pkt_out);
     if (!size)
         return;
@@ -521,6 +522,9 @@ static void exec_tinfo(void)
         DBG(0, "Table info error: %s (%u)\n", s3p_err_str(code), code);
         return;
     }
+    // Version
+    ver = ((uint16_t)pkt_in.data[size++]) << 8;
+    ver |= (uint16_t)pkt_in.data[size++];
     // Reg min
     reg_min_id = ((uint16_t)pkt_in.data[size++]) << 8;
     reg_min_id |= (uint16_t)pkt_in.data[size++];
@@ -533,11 +537,13 @@ static void exec_tinfo(void)
     // VMEM rows
     vmem_rows = (uint16_t)pkt_in.data[size++];
     // Info
-    DBG(0, "Table info:\n");
-    DBG(0, "  reg min  : %u\n", reg_min_id);
-    DBG(0, "  reg max  : %u\n", reg_max_id);
-    DBG(0, "  regs cnt : %u\n", regs_cnt);
-    DBG(0, "  vmem rows: %u\n", vmem_rows);
+    DBG(0, "Remote node S3P info:\n");
+    DBG(0, "  S3P ver  : %2u.%02u (local: %2u.%02u)\n", ver>>8,
+            (uint8_t)ver, S3P_VERSION>>8, (uint8_t)(S3P_VERSION));
+    DBG(0, "  reg min  : %3u\n", reg_min_id);
+    DBG(0, "  reg max  : %3u\n", reg_max_id);
+    DBG(0, "  regs cnt : %3u\n", regs_cnt);
+    DBG(0, "  vmem maps: %3u %s\n", vmem_rows, vmem_rows?"":"(NOT SUPPORTED)");
     DBG(0, "Response ok\n");
 }
 
@@ -626,7 +632,7 @@ static void exec_rlist(void)
     s3p_init_pkt_out(&pkt_out, manager_id, node_id, seq_inc());
     // Header
     pkt_out.data_len = data_len;
-    pkt_out.type = PT_TABLE_INFO;
+    pkt_out.type = PT_S3P_INFO;
     uint16_t size = s3p_make_frame(ser_buf, &pkt_out);
     if (!size)
         return;
@@ -639,7 +645,7 @@ static void exec_rlist(void)
 
     size = 0;
     code = pkt_in.data[size++];
-    DBG(1, "TABLE INFO RESP: data_len=%u, res_code=%u\n",
+    DBG(1, "S3P INFO RESP: data_len=%u, res_code=%u\n",
             pkt_in.data_len, code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Table info error: %s (%u)\n", s3p_err_str(code), code);
@@ -786,7 +792,7 @@ static void exec_vlist(void)
     s3p_init_pkt_out(&pkt_out, manager_id, node_id, seq_inc());
     // Header
     pkt_out.data_len = data_len;
-    pkt_out.type = PT_TABLE_INFO;
+    pkt_out.type = PT_S3P_INFO;
     uint16_t size = s3p_make_frame(ser_buf, &pkt_out);
     if (!size)
         return;
@@ -1244,8 +1250,8 @@ static void manage_cmd(const char *cmd, const char *args)
         }
         exec_wstr(reg_id, str);
     }
-    else if (IS_EQUAL(cmd, "tinfo")) {
-        exec_tinfo();
+    else if (IS_EQUAL(cmd, "info")) {
+        exec_info();
     }
     else if (IS_EQUAL(cmd, "rlist")) {
         char str[32];

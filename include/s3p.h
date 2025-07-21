@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// Version
+#define S3P_VERSION           0x0100    // 1.00
+
 #define S3P_MAX_RX_TX_SIZE    1024
 #define S3P_MAX_PKT_SIZE      1018
 #define S3P_MAX_DATA_SIZE     1010
@@ -48,8 +51,8 @@ typedef enum {
     PT_READ_STR_REG_RESP  = 0x1B,
     PT_WRITE_STR_REG      = 0x1C,
     PT_WRITE_STR_REG_RESP = 0x1D,
-    PT_TABLE_INFO         = 0x30,
-    PT_TABLE_INFO_RESP    = 0x31,
+    PT_S3P_INFO           = 0x30,
+    PT_S3P_INFO_RESP      = 0x31,
     PT_REG_INFO           = 0x32,
     PT_REG_INFO_RESP      = 0x33,
     PT_VMEM_INFO          = 0x34,

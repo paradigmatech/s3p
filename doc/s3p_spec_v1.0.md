@@ -443,9 +443,10 @@ Note: Buffer section size corresponds to Packet Lenght - 4 (Address size)
 
 
 
-### Get Table Info
+### Get S3P Info
 
-- This request allow to get information about a specific register
+- This request allow to get general information about S3P version used
+    on the node, number of registers, VMEM, etc
 
 
 #### [0x30] Request
@@ -465,21 +466,25 @@ Note: Buffer section size corresponds to Packet Lenght - 4 (Address size)
 #### [0x31] Response
 
 ```
-.--------.----------.----------.-----------.------------.
-|    1   |     2    |     2    |     2     |     1      |
-|--------+----------+----------+-----------+------------|
-| Info   | Register | Register | Registers | VMEM Map   |
-| Result | Min      | Max      | Count     | Table Rows |
-| Code   | Id       | Id       |           | Count      |
-'--------'----------'----------'-----------'------------'
+.--------.----------.----------.----------.-----------.------------.
+|    1   |     2    |     2    |     2    |     2     |     1      |
+|--------+----------+----------+----------+-----------+------------|
+| Info   | S3P      | Register | Register | Registers | VMEM       |
+| Result | Protocol | Min      | Max      | Count     | Mappings   |
+| Code   | Version  | Id       | Id       |           | Count      |
+'--------'----------'----------'----------'-----------'------------'
 ```
 
 - **Info Result Code**: result code of read request, see Error Codes
+- **S3P Protocol Version**: version of the protocol supported by the
+    node, as a two byte hex number in the form 0xMMmm (MM major version,
+    mm minor version), for example 0x0100 for version 1.00
 - **Register Min Id**: minimum accesible register id
 - **Register Max Id**: minimum accesible register id
 - **Registers count**: total count of available resgisters. NOTE: due to
     gaps in the register map, count is usually less than max-min
-- **VMEM Map Table Rows Count**: total count of VMEM mapping table rows
+- **VMEM Mappings Count**: total count of VMEM mapping table rows.
+    0 if VMEM is not supported
 
 
 
