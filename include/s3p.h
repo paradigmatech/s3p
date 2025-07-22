@@ -69,7 +69,7 @@ typedef enum {
 extern void s3p_set_debug_level(const int level);
 extern bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t dst_id,
         const uint8_t *frame_buf, uint16_t len);
-extern void s3p_init_pkt_out(s3p_packet_t *pkt_out, uint8_t *pkt_buf,
+extern void s3p_init_pkt(s3p_packet_t *pkt_out, uint8_t *pkt_buf,
         const uint8_t src_id, const uint8_t dst_id,
         const uint8_t flags_seq);
 extern uint16_t s3p_make_frame(uint8_t *buf, const s3p_packet_t *pkt_out);

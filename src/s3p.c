@@ -56,7 +56,7 @@ bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t dst_id,
     return true;
 }
 
-void s3p_init_pkt_out(s3p_packet_t *pkt_out, uint8_t *pkt_buf,
+void s3p_init_pkt(s3p_packet_t *pkt_out, uint8_t *pkt_buf,
         const uint8_t src_id, const uint8_t dst_id,
         const uint8_t flags_seq)
 {

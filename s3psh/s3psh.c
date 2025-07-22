@@ -263,7 +263,7 @@ static void exec_cmd(const uint8_t cmd_id, const uint32_t arg)
     uint16_t size;
     uint8_t code;
 
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Cmd id
     pkt_out.data[data_len++] = cmd_id;
     // Arg
@@ -302,7 +302,7 @@ static void exec_ping(void)
     uint8_t code;
     uint32_t start_ms;
 
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Cmd id
     pkt_out.data[data_len++] = CT_PING;
     // Arg
@@ -344,7 +344,7 @@ static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
     value_t value;
     const char *name;
 
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Start reg id
     pkt_out.data[data_len++] = (uint8_t)(reg_id >> 8);
     pkt_out.data[data_len++] = (uint8_t)reg_id;
@@ -410,7 +410,7 @@ static void exec_wreg(const uint16_t reg_id, const value_t *value)
     uint16_t size;
     uint8_t code;
 
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Reg id
     pkt_out.data[data_len++] = (uint8_t)(reg_id >> 8);
     pkt_out.data[data_len++] = (uint8_t)reg_id;
@@ -454,7 +454,7 @@ static void exec_rstr(const uint16_t reg_id)
     char *str;
     value_type_t vt;
 
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Reg id
     pkt_out.data[data_len++] = (uint8_t)(reg_id >> 8);
     pkt_out.data[data_len++] = (uint8_t)reg_id;
@@ -503,7 +503,7 @@ static void exec_info(void)
     uint16_t regs_cnt = 0;
     uint8_t vmem_rows;
 
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_S3P_INFO;
@@ -564,7 +564,7 @@ static void exec_rinfo(const uint16_t reg_id)
     uint16_t flags;
     const char *name = "";
 
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Reg id
     pkt_out.data[data_len++] = (uint8_t)(reg_id >> 8);
     pkt_out.data[data_len++] = (uint8_t)reg_id;
@@ -633,7 +633,7 @@ static void exec_rlist(void)
 
     DBG(0, "Downloading regs table...\n");
 
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_S3P_INFO;
@@ -691,7 +691,7 @@ static void exec_rlist(void)
     reg_id = reg_min_id;
     while (!ctrlc && cnt<regs_cnt && reg_id<=reg_max_id) {
         data_len = 0;
-        s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+        s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
         // Reg id
         pkt_out.data[data_len++] = (uint8_t)(reg_id >> 8);
         pkt_out.data[data_len++] = (uint8_t)reg_id;
@@ -796,7 +796,7 @@ static void exec_vlist(void)
 
     DBG(0, "Downloading VMEM table...\n");
 
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_S3P_INFO;
@@ -853,7 +853,7 @@ static void exec_vlist(void)
     row_idx = 0;
     while (!ctrlc && cnt<vmem_rows && row_idx<vmem_rows) {
         data_len = 0;
-        s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+        s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
         // Row idx
         pkt_out.data[data_len++] = row_idx;
         // Header
@@ -964,7 +964,7 @@ static void exec_wstr(const uint16_t reg_id, const char *str)
     uint8_t code;
 
     //DBG(0, "exec_wstr: reg_id=%u, str='%s'\n", reg_id, str);
-    s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+    s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Reg id
     pkt_out.data[data_len++] = (uint8_t)(reg_id >> 8);
     pkt_out.data[data_len++] = (uint8_t)reg_id;
@@ -1020,7 +1020,7 @@ static void exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
     ctrlc = 0;
     while (!ctrlc && rbytes<tot_size) {
         int data_len = 0;
-        s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+        s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
         // Address
         pkt_out.data[data_len++] = (uint8_t)(addr >> 24);
         pkt_out.data[data_len++] = (uint8_t)(addr >> 16);
@@ -1103,7 +1103,7 @@ static void exec_up(uint32_t addr, const char *file)
         DBG(1, "\n[0x%08X] +%4lu\n", addr, nbytes);
 
         data_len = 0;
-        s3p_init_pkt_out(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
+        s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
         // Address
         pkt_out.data[data_len++] = (uint8_t)(addr >> 24);
         pkt_out.data[data_len++] = (uint8_t)(addr >> 16);
