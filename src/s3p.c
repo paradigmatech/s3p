@@ -13,12 +13,12 @@ void s3p_set_debug_level(const int level)
 }
 
 bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t id,
-        const uint8_t *ser_buf, uint16_t len)
+        const uint8_t *frame_buf, uint16_t len)
 {
     DBG(1, "New msg rx: len=%u\n", len);
 
     cobs_decode_result res = cobs_decode(pkt_in_buf, S3P_MAX_PKT_SIZE,
-            ser_buf, len);
+            frame_buf, len);
     if (res.status != COBS_DECODE_OK) {
         DBG(1, "Decode error, res=0x%02X\n", res.status);
         return false;
