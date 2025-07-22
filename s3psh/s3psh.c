@@ -91,7 +91,7 @@ static reg_t *regs_table = NULL;
 static vmem_t *vmem_table = NULL;
 
 struct ser_struct ser = { 0 };
-static uint8_t ser_buf[S3P_MAX_FRAME_SIZE];
+static uint8_t frame_buf[S3P_MAX_FRAME_SIZE];
 static uint8_t seq_num;
 static uint8_t node_id = DEF_NODE_ID;
 static uint8_t manager_id = DEF_MANAGER_ID;
@@ -239,11 +239,11 @@ static bool wait_response(packet_t *pkt_in)
             continue;
         }
         if (rx_len < S3P_MAX_FRAME_SIZE)
-            ser_buf[rx_len++] = byt;
+            frame_buf[rx_len++] = byt;
 
         if (byt == S3P_COBS_DELIM) {
             memset(pkt_in, 0x00, sizeof(packet_t));
-            bool res = s3p_parse_frame(pkt_in, manager_id, ser_buf, rx_len-1);
+            bool res = s3p_parse_frame(pkt_in, manager_id, frame_buf, rx_len-1);
             return res;
         }
     }
@@ -271,11 +271,11 @@ static void exec_cmd(const uint8_t cmd_id, const uint32_t arg)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_EXEC_CMD;
-    size = s3p_make_frame(ser_buf, &pkt_out);
+    size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
         return;
     if (!check_seq(&pkt_in))
@@ -307,11 +307,11 @@ static void exec_ping(void)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_EXEC_CMD;
-    size = s3p_make_frame(ser_buf, &pkt_out);
+    size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     start_ms = client_utils_get_ms();
     if (!wait_response(&pkt_in))
         return;
@@ -351,11 +351,11 @@ static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_READ_REGS;
-    size = s3p_make_frame(ser_buf, &pkt_out);
+    size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
         return;
     if (!check_seq(&pkt_in))
@@ -421,11 +421,11 @@ static void exec_wreg(const uint16_t reg_id, const value_t *value)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_WRITE_REG;
-    size = s3p_make_frame(ser_buf, &pkt_out);
+    size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
         return;
     if (!check_seq(&pkt_in))
@@ -458,11 +458,11 @@ static void exec_rstr(const uint16_t reg_id)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_READ_STR_REG;
-    size = s3p_make_frame(ser_buf, &pkt_out);
+    size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
         return;
     if (!check_seq(&pkt_in))
@@ -504,11 +504,11 @@ static void exec_info(void)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_S3P_INFO;
-    size = s3p_make_frame(ser_buf, &pkt_out);
+    size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
         return;
     if (!check_seq(&pkt_in))
@@ -568,11 +568,11 @@ static void exec_rinfo(const uint16_t reg_id)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_REG_INFO;
-    size = s3p_make_frame(ser_buf, &pkt_out);
+    size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
         return;
     if (!check_seq(&pkt_in))
@@ -634,11 +634,11 @@ static void exec_rlist(void)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_S3P_INFO;
-    uint16_t size = s3p_make_frame(ser_buf, &pkt_out);
+    uint16_t size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
         return;
     if (!check_seq(&pkt_in))
@@ -695,11 +695,11 @@ static void exec_rlist(void)
         // Header
         pkt_out.data_len = data_len;
         pkt_out.type = PT_REG_INFO;
-        uint16_t size = s3p_make_frame(ser_buf, &pkt_out);
+        uint16_t size = s3p_make_frame(frame_buf, &pkt_out);
         if (!size)
             break;
         // Send msg
-        if (ser_write(&ser, ser_buf, size) < 0) {
+        if (ser_write(&ser, frame_buf, size) < 0) {
             DBG(1, "Ser write error!\n");
             break;
         }
@@ -797,11 +797,11 @@ static void exec_vlist(void)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_S3P_INFO;
-    uint16_t size = s3p_make_frame(ser_buf, &pkt_out);
+    uint16_t size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
         return;
     if (!check_seq(&pkt_in))
@@ -856,11 +856,11 @@ static void exec_vlist(void)
         // Header
         pkt_out.data_len = data_len;
         pkt_out.type = PT_VMEM_INFO;
-        size = s3p_make_frame(ser_buf, &pkt_out);
+        size = s3p_make_frame(frame_buf, &pkt_out);
         if (!size)
             break;
         // Send msg
-        if (ser_write(&ser, ser_buf, size) < 0) {
+        if (ser_write(&ser, frame_buf, size) < 0) {
             DBG(1, "Ser write error!\n");
             break;
         }
@@ -973,11 +973,11 @@ static void exec_wstr(const uint16_t reg_id, const char *str)
     // Header
     pkt_out.data_len = data_len;
     pkt_out.type = PT_WRITE_STR_REG;
-    size = s3p_make_frame(ser_buf, &pkt_out);
+    size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
         return;
 
-    ser_write(&ser, ser_buf, size);
+    ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
         return;
     if (!check_seq(&pkt_in))
@@ -1032,12 +1032,12 @@ static void exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
         pkt_out.type = PT_READ_VMEM;
 
         DBG(1, "\nCHUNK REQ: rsize=%u, rbytes=%u\n", rsize, rbytes);
-        size = s3p_make_frame(ser_buf, &pkt_out);
+        size = s3p_make_frame(frame_buf, &pkt_out);
         if (!size)
             return;
 
         memset(&pkt_in, 0x00, sizeof(packet_t));
-        ser_write(&ser, ser_buf, size);
+        ser_write(&ser, frame_buf, size);
         //ser_discard(&ser);
         if (!wait_response(&pkt_in))
             return;
@@ -1113,12 +1113,12 @@ static void exec_up(uint32_t addr, const char *file)
         pkt_out.data_len = data_len;
         pkt_out.type = PT_WRITE_VMEM;
 
-        size = s3p_make_frame(ser_buf, &pkt_out);
+        size = s3p_make_frame(frame_buf, &pkt_out);
         if (!size)
             return;
 
         memset(&pkt_in, 0x00, sizeof(packet_t));
-        ser_write(&ser, ser_buf, size);
+        ser_write(&ser, frame_buf, size);
         //ser_discard(&ser);
         if (!wait_response(&pkt_in))
             return;
