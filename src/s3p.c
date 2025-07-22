@@ -12,7 +12,7 @@ void s3p_set_debug_level(const int level)
     _dbg_lvl = level;
 }
 
-bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t id,
+bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t dst_id,
         const uint8_t *frame_buf, uint16_t len)
 {
     DBG(1, "New msg rx: len=%u\n", len);
@@ -46,10 +46,10 @@ bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t id,
         return false;
     }
 
-    //Check id
-    if (pkt->dst_id != id) {
+    //Check dst_id
+    if (pkt->dst_id != dst_id) {
         DBG(1, "Discarding pkt, dst_id=0x%02X != 0x%02X\n",
-                pkt->src_id, id);
+                pkt->src_id, dst_id);
         return false;
     }
 
