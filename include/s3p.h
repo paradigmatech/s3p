@@ -65,7 +65,7 @@ typedef enum {
 } cmd_type_t;
 
 extern void s3p_set_debug_level(const int level);
-extern bool s3p_parse_msg(packet_t *pkt, const uint8_t id,
+extern bool s3p_parse_frame(packet_t *pkt, const uint8_t id,
         const uint8_t *ser_buf, uint16_t len);
 extern void s3p_init_pkt_out(packet_t *pkt_out, const uint8_t src_id,
         const uint8_t dst_id, const uint8_t flags_seq);

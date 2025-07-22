@@ -243,7 +243,7 @@ static bool wait_response(packet_t *pkt_in)
 
         if (byt == S3P_COBS_DELIM) {
             memset(pkt_in, 0x00, sizeof(packet_t));
-            bool res = s3p_parse_msg(pkt_in, manager_id, ser_buf, rx_len-1);
+            bool res = s3p_parse_frame(pkt_in, manager_id, ser_buf, rx_len-1);
             return res;
         }
     }

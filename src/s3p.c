@@ -12,7 +12,7 @@ void s3p_set_debug_level(const int level)
     _dbg_lvl = level;
 }
 
-bool s3p_parse_msg(packet_t *pkt, const uint8_t id,
+bool s3p_parse_frame(packet_t *pkt, const uint8_t id,
         const uint8_t *ser_buf, uint16_t len)
 {
     DBG(1, "New msg rx: len=%u\n", len);
