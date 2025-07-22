@@ -5,7 +5,7 @@
 #include "s3p_dbg.h"
 
 static uint8_t pkt_in_buf[S3P_MAX_PKT_SIZE];
-static uint8_t pkt_out_buf[S3P_MAX_PKT_SIZE];
+//static uint8_t pkt_out_buf[S3P_MAX_PKT_SIZE];
 
 void s3p_set_debug_level(const int level)
 {
@@ -56,18 +56,18 @@ bool s3p_parse_frame(packet_t *pkt, const uint8_t id,
     return true;
 }
 
-void s3p_init_pkt_out(packet_t *pkt_out, const uint8_t src_id,
-        const uint8_t dst_id, const uint8_t flags_seq)
+void s3p_init_pkt_out(packet_t *pkt_out, uint8_t *pkt_buf,
+        const uint8_t src_id, const uint8_t dst_id,
+        const uint8_t flags_seq)
 {
-    // Clean response
-    memset(pkt_out_buf, 0x00, sizeof(pkt_out_buf));
-    // Prepare fallback response
+    pkt_out->buf = pkt_buf;
+    memset(pkt_buf, 0x00, S3P_MAX_PKT_SIZE);
     pkt_out->src_id = src_id;
     pkt_out->dst_id = dst_id;
     pkt_out->flags_seq = flags_seq;
-    pkt_out->type = 0; // Should this be == requst or 0 ?
+    pkt_out->type = PT_NONE;
     pkt_out->data_len = 0;
-    pkt_out->data = &pkt_out_buf[6];
+    pkt_out->data = &pkt_out->buf[6];
 }
 
 uint16_t s3p_make_frame(uint8_t *buf, const packet_t *pkt_out)
@@ -75,19 +75,19 @@ uint16_t s3p_make_frame(uint8_t *buf, const packet_t *pkt_out)
     uint16_t pkt_size = 0;
 
     // Set source and destination
-    pkt_out_buf[pkt_size++] = pkt_out->src_id;    // Source
-    pkt_out_buf[pkt_size++] = pkt_out->dst_id;    // Dst is request src
-    pkt_out_buf[pkt_size++] = pkt_out->flags_seq; // Flags/seq
+    pkt_out->buf[pkt_size++] = pkt_out->src_id;    // Source
+    pkt_out->buf[pkt_size++] = pkt_out->dst_id;    // Dst is request src
+    pkt_out->buf[pkt_size++] = pkt_out->flags_seq; // Flags/seq
     // Type
-    pkt_out_buf[pkt_size++] = pkt_out->type;
+    pkt_out->buf[pkt_size++] = pkt_out->type;
     // Set data_len
-    pkt_out_buf[pkt_size++] = (uint8_t)(pkt_out->data_len >> 8);
-    pkt_out_buf[pkt_size++] = (uint8_t)pkt_out->data_len;
+    pkt_out->buf[pkt_size++] = (uint8_t)(pkt_out->data_len >> 8);
+    pkt_out->buf[pkt_size++] = (uint8_t)pkt_out->data_len;
     pkt_size += pkt_out->data_len;
     // CRC
-    const uint16_t crc = crc16_ccitt(pkt_out_buf, pkt_size, CRC_START_CCITT_1D0F);
-    pkt_out_buf[pkt_size++] = (uint8_t)(crc >> 8);
-    pkt_out_buf[pkt_size++] = (uint8_t)crc;
+    const uint16_t crc = crc16_ccitt(pkt_out->buf, pkt_size, CRC_START_CCITT_1D0F);
+    pkt_out->buf[pkt_size++] = (uint8_t)(crc >> 8);
+    pkt_out->buf[pkt_size++] = (uint8_t)crc;
 
     DBG(2, "Msg out: src=0x%02X, dst=0x%02X, flags_seq=0x%02X, type=0x%02X\n",
             pkt_out->src_id, pkt_out->dst_id, pkt_out->flags_seq, pkt_out->type);
@@ -95,7 +95,7 @@ uint16_t s3p_make_frame(uint8_t *buf, const packet_t *pkt_out)
             pkt_out->data_len, crc);
 
     cobs_encode_result res = cobs_encode(buf, S3P_MAX_FRAME_SIZE,
-            pkt_out_buf, pkt_size);
+            pkt_out->buf, pkt_size);
 
     if (res.status == COBS_ENCODE_OK) {
         DBG(2, "Encode ok: in_len=%u, out_len=%lu\n",
