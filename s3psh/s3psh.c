@@ -623,6 +623,7 @@ static void exec_rlist(void)
     uint8_t group_id;
     uint16_t flags;
     const char *name = "";
+    uint16_t ver = 0;
     uint16_t reg_min_id = 0;
     uint16_t reg_max_id = 0;
     uint16_t regs_cnt = 0;
@@ -651,6 +652,9 @@ static void exec_rlist(void)
         DBG(0, "Table info error: %s (%u)\n", s3p_err_str(code), code);
         return;
     }
+    // Version
+    ver = ((uint16_t)pkt_in.data[size++]) << 8;
+    ver |= (uint16_t)pkt_in.data[size++];
     // Reg min
     reg_min_id = ((uint16_t)pkt_in.data[size++]) << 8;
     reg_min_id |= (uint16_t)pkt_in.data[size++];
@@ -811,6 +815,9 @@ static void exec_vlist(void)
         DBG(0, "VMEM info error: %s (%u)\n", s3p_err_str(code), code);
         return;
     }
+    // Version
+    size++; // ver = ((uint16_t)pkt_in.data[size++]) << 8;
+    size++; // ver |= (uint16_t)pkt_in.data[size++];
     // Reg min
     size++; // reg_min_id = ((uint16_t)pkt_in.data[size++]) << 8;
     size++; // reg_min_id |= (uint16_t)pkt_in.data[size++];
