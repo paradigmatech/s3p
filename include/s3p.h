@@ -35,7 +35,7 @@ typedef struct {
     uint16_t data_len;  // Length of the Data section (payload)
     uint8_t *buf;       // Pointer to packet buffer to be encoded or decoded
     uint8_t *data;      // Pointer to the Data section of packet
-} packet_t;
+} s3p_packet_t;
 
 typedef enum {
     PT_NONE               = 0,
@@ -67,12 +67,12 @@ typedef enum {
 } cmd_type_t;
 
 extern void s3p_set_debug_level(const int level);
-extern bool s3p_parse_frame(packet_t *pkt, const uint8_t id,
+extern bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t id,
         const uint8_t *ser_buf, uint16_t len);
-extern void s3p_init_pkt_out(packet_t *pkt_out, uint8_t *pkt_buf,
+extern void s3p_init_pkt_out(s3p_packet_t *pkt_out, uint8_t *pkt_buf,
         const uint8_t src_id, const uint8_t dst_id,
         const uint8_t flags_seq);
-extern uint16_t s3p_make_frame(uint8_t *buf, const packet_t *pkt_out);
+extern uint16_t s3p_make_frame(uint8_t *buf, const s3p_packet_t *pkt_out);
 extern const char *s3p_err_str(const uint8_t code);
 
 #endif // _S3P_H

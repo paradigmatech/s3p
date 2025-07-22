@@ -216,7 +216,7 @@ static uint8_t seq_inc(void)
     return seq_num;
 }
 
-static bool check_seq(const packet_t *pkt_in)
+static bool check_seq(const s3p_packet_t *pkt_in)
 {
     const uint8_t seq_in = S3P_SEQ_MASKED(pkt_in->flags_seq);
     if (seq_in != seq_num) {
@@ -226,7 +226,7 @@ static bool check_seq(const packet_t *pkt_in)
     return true;
 }
 
-static bool wait_response(packet_t *pkt_in)
+static bool wait_response(s3p_packet_t *pkt_in)
 {
     uint32_t last_ms;
     bool timeout;
@@ -245,7 +245,7 @@ static bool wait_response(packet_t *pkt_in)
             frame_buf[rx_len++] = byt;
 
         if (byt == S3P_COBS_DELIM) {
-            memset(pkt_in, 0x00, sizeof(packet_t));
+            memset(pkt_in, 0x00, sizeof(s3p_packet_t));
             bool res = s3p_parse_frame(pkt_in, manager_id, frame_buf, rx_len-1);
             return res;
         }
@@ -257,8 +257,8 @@ static bool wait_response(packet_t *pkt_in)
 
 static void exec_cmd(const uint8_t cmd_id, const uint32_t arg)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     int data_len = 0;
     uint16_t size;
     uint8_t code;
@@ -295,8 +295,8 @@ static void exec_cmd(const uint8_t cmd_id, const uint32_t arg)
 
 static void exec_ping(void)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     int data_len = 0;
     uint16_t size;
     uint8_t code;
@@ -333,8 +333,8 @@ static void exec_ping(void)
 
 static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     char value_str[VALUE_SCALAR_MAX_SIZE];
     int data_len = 0;
     uint16_t cnt;
@@ -404,8 +404,8 @@ static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
 
 static void exec_wreg(const uint16_t reg_id, const value_t *value)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     int data_len = 0;
     uint16_t size;
     uint8_t code;
@@ -445,8 +445,8 @@ static void exec_wreg(const uint16_t reg_id, const value_t *value)
 
 static void exec_rstr(const uint16_t reg_id)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     int data_len = 0;
     uint16_t size;
     uint8_t code;
@@ -492,8 +492,8 @@ static void exec_rstr(const uint16_t reg_id)
 
 static void exec_info(void)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     int data_len = 0;
     uint16_t size;
     uint8_t code;
@@ -552,8 +552,8 @@ static void exec_info(void)
 
 static void exec_rinfo(const uint16_t reg_id)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     int data_len = 0;
     uint16_t size;
     uint16_t id;
@@ -614,8 +614,8 @@ static void exec_rinfo(const uint16_t reg_id)
 
 static void exec_rlist(void)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     int data_len = 0;
     uint16_t cnt = 0;
     uint16_t reg_id;
@@ -707,7 +707,7 @@ static void exec_rlist(void)
             break;
         }
 
-        memset(&pkt_in, 0x00, sizeof(packet_t));
+        memset(&pkt_in, 0x00, sizeof(s3p_packet_t));
         //ser_discard(&ser);
         if (!wait_response(&pkt_in))
             break;
@@ -782,8 +782,8 @@ static void exec_rshow(void)
 
 static void exec_vlist(void)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     int data_len = 0;
     uint8_t code;
     uint8_t flags;
@@ -868,7 +868,7 @@ static void exec_vlist(void)
             break;
         }
 
-        memset(&pkt_in, 0x00, sizeof(packet_t));
+        memset(&pkt_in, 0x00, sizeof(s3p_packet_t));
         //ser_discard(&ser);
         if (!wait_response(&pkt_in))
             break;
@@ -957,8 +957,8 @@ static void exec_vshow(void)
 
 static void exec_wstr(const uint16_t reg_id, const char *str)
 {
-    packet_t pkt_out;
-    packet_t pkt_in;
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in;
     int data_len = 0;
     uint16_t size;
     uint8_t code;
@@ -998,8 +998,8 @@ static void exec_wstr(const uint16_t reg_id, const char *str)
 
 static void exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
 {
-    packet_t pkt_out;
-    packet_t pkt_in = { 0 };
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in = { 0 };
     uint16_t size;
     size_t nbytes;
     uint32_t rsize = 0;
@@ -1039,7 +1039,7 @@ static void exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
         if (!size)
             return;
 
-        memset(&pkt_in, 0x00, sizeof(packet_t));
+        memset(&pkt_in, 0x00, sizeof(s3p_packet_t));
         ser_write(&ser, frame_buf, size);
         //ser_discard(&ser);
         if (!wait_response(&pkt_in))
@@ -1078,8 +1078,8 @@ static void exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
 
 static void exec_up(uint32_t addr, const char *file)
 {
-    packet_t pkt_out;
-    packet_t pkt_in = { 0 };
+    s3p_packet_t pkt_out;
+    s3p_packet_t pkt_in = { 0 };
     int data_len;
     uint16_t size;
     uint8_t code;
@@ -1120,7 +1120,7 @@ static void exec_up(uint32_t addr, const char *file)
         if (!size)
             return;
 
-        memset(&pkt_in, 0x00, sizeof(packet_t));
+        memset(&pkt_in, 0x00, sizeof(s3p_packet_t));
         ser_write(&ser, frame_buf, size);
         //ser_discard(&ser);
         if (!wait_response(&pkt_in))

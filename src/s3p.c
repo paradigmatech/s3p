@@ -12,7 +12,7 @@ void s3p_set_debug_level(const int level)
     _dbg_lvl = level;
 }
 
-bool s3p_parse_frame(packet_t *pkt, const uint8_t id,
+bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t id,
         const uint8_t *ser_buf, uint16_t len)
 {
     DBG(1, "New msg rx: len=%u\n", len);
@@ -56,7 +56,7 @@ bool s3p_parse_frame(packet_t *pkt, const uint8_t id,
     return true;
 }
 
-void s3p_init_pkt_out(packet_t *pkt_out, uint8_t *pkt_buf,
+void s3p_init_pkt_out(s3p_packet_t *pkt_out, uint8_t *pkt_buf,
         const uint8_t src_id, const uint8_t dst_id,
         const uint8_t flags_seq)
 {
@@ -70,7 +70,7 @@ void s3p_init_pkt_out(packet_t *pkt_out, uint8_t *pkt_buf,
     pkt_out->data = &pkt_out->buf[6];
 }
 
-uint16_t s3p_make_frame(uint8_t *buf, const packet_t *pkt_out)
+uint16_t s3p_make_frame(uint8_t *buf, const s3p_packet_t *pkt_out)
 {
     uint16_t pkt_size = 0;
 
