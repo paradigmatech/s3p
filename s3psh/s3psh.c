@@ -93,6 +93,8 @@ static vmem_t *vmem_table = NULL;
 struct ser_struct ser = { 0 };
 // Frame buffer
 static uint8_t frame_buf[S3P_MAX_FRAME_SIZE];
+// Decoded packet in buffer
+static uint8_t pkt_in_buf[S3P_MAX_PKT_SIZE];
 // Unencoded packet out buffer
 static uint8_t pkt_out_buf[S3P_MAX_PKT_SIZE];
 static uint8_t seq_num;
@@ -245,8 +247,10 @@ static bool wait_response(s3p_packet_t *pkt_in)
             frame_buf[rx_len++] = byt;
 
         if (byt == S3P_COBS_DELIM) {
-            memset(pkt_in, 0x00, sizeof(s3p_packet_t));
-            bool res = s3p_parse_frame(pkt_in, manager_id, frame_buf, rx_len-1);
+            s3p_init_pkt(pkt_in, pkt_in_buf, S3P_ID_NONE, S3P_ID_NONE,
+                    S3P_SEQ_NONE);
+            bool res = s3p_parse_frame(pkt_in, manager_id, frame_buf,
+                    rx_len-1);
             return res;
         }
     }

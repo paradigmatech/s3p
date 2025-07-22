@@ -4,9 +4,6 @@
 #include "s3p.h"
 #include "s3p_dbg.h"
 
-static uint8_t pkt_in_buf[S3P_MAX_PKT_SIZE];
-//static uint8_t pkt_out_buf[S3P_MAX_PKT_SIZE];
-
 void s3p_set_debug_level(const int level)
 {
     _dbg_lvl = level;
@@ -17,7 +14,7 @@ bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t dst_id,
 {
     DBG(1, "New msg rx: len=%u\n", len);
 
-    cobs_decode_result res = cobs_decode(pkt_in_buf, S3P_MAX_PKT_SIZE,
+    cobs_decode_result res = cobs_decode(pkt->buf, S3P_MAX_PKT_SIZE,
             frame_buf, len);
     if (res.status != COBS_DECODE_OK) {
         DBG(1, "Decode error, res=0x%02X\n", res.status);
@@ -26,15 +23,15 @@ bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t dst_id,
 
     DBG(1, "Decode ok: in_len=%u, out_len=%lu\n", len, res.out_len);
 
-    pkt->src_id = pkt_in_buf[0];
-    pkt->dst_id = pkt_in_buf[1];
-    pkt->flags_seq = pkt_in_buf[2];
-    pkt->type = pkt_in_buf[3];
-    pkt->data_len = (pkt_in_buf[4]<<8) | pkt_in_buf[5];
-    pkt->data = &pkt_in_buf[6];
+    pkt->src_id = pkt->buf[0];
+    pkt->dst_id = pkt->buf[1];
+    pkt->flags_seq = pkt->buf[2];
+    pkt->type = pkt->buf[3];
+    pkt->data_len = (pkt->buf[4]<<8) | pkt->buf[5];
+    pkt->data = &pkt->buf[6];
 
-    const uint16_t exp = (pkt_in_buf[res.out_len-2]<<8) | pkt_in_buf[res.out_len-1];
-    const uint16_t calc = crc16_ccitt(pkt_in_buf, res.out_len-2, CRC_START_CCITT_1D0F);
+    const uint16_t exp = (pkt->buf[res.out_len-2]<<8) | pkt->buf[res.out_len-1];
+    const uint16_t calc = crc16_ccitt(pkt->buf, res.out_len-2, CRC_START_CCITT_1D0F);
     DBG(2, "Msg in: src=0x%02X, dst=0x%02X, flags_seq=0x%02X, type=0x%02X\n",
             pkt->src_id, pkt->dst_id, pkt->flags_seq, pkt->type);
     DBG(2, "        data_len=%u, crc=0x%04X\n",

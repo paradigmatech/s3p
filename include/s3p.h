@@ -16,6 +16,8 @@
 #define S3P_SEQ_MASKED(_s)    ((_s) & 0x0F)
 #define S3P_SER_ITEM_SIZE     7
 #define S3P_MAX_NAME_SIZE     32
+#define S3P_ID_NONE           0
+#define S3P_SEQ_NONE          0
 
 #define S3P_ERR_NONE          0
 #define S3P_ERR_VMEM_XLATE    100
