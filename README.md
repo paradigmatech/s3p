@@ -16,16 +16,16 @@ researchers, hobbyists, and commercial developers.
 Table of Contents
 -----------------
 
-- Overview (#overview)
-- Key Features (#key-features)
-- Use Cases (#use-cases)
-- Getting Started (#getting-started)
-- Installation (#installation)
-- Usage (#usage)
-- S3P shell (#s3psh)
-- Contributing (#contributing)
-- License (#license)
-- Contact (#contact)
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Use Cases](#use-cases)
+- [Getting Started](#getting-started)
+- [Installation](#installation)
+- [Usage](#usage)
+- [S3P shell](#s3psh)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
 <a name="overview"></a>
 Overview
