@@ -1,3 +1,8 @@
+/**
+@file s3p.c
+@brief S3P main source
+*/
+
 #include <string.h>
 #include "crc16.h"
 #include "cobs.h"
