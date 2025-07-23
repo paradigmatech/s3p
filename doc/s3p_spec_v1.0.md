@@ -34,15 +34,15 @@ Contents
 
 The following documentation is divided in two main sections:
 
-1. Network (Frame) and Transport (Packet) layers specification
+- Network (Frame) and Transport (Packet) layers specification
 
-2. ParadigmaTech custom Payload (command, responses, errors, etc)
+- ParadigmaTech custom Payload (command, responses, errors, etc)
    specification
 
 
 
-1. Network & Transport
-======================
+Network & Transport
+===================
 
 
 Frame Specification
@@ -119,8 +119,8 @@ Packet Specification
 
 
 
-2. ParadigaTech Payload Specification
-=====================================
+ParadigaTech Payload Specification
+==================================
 
 This section outlines the specifications for the 'Data' part (also known
 as Payload) of a packet.
