@@ -1,3 +1,5 @@
-*.o
 s3psh/s3psh
+doc/generated_doc
 tags
+*.o
+*.bak
