@@ -153,7 +153,7 @@ extern bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t dst_id,
 /**
  * @brief Initialize a #s3p_packet_t structure to be used for sending or
  * receiving a frame
- * @param pkt_out Pointer to parsed (decoded) packet structure
+ * @param pkt Pointer to parsed (decoded) packet structure
  * @param pkt_buf Pointer to store parsed data from received framee (see
  * #s3p_parse_frame) or data to be encoded into a frame for sending (see
  * #s3p_make_frame). This buffer can be allocated dynamically or
@@ -165,19 +165,19 @@ extern bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t dst_id,
  * sequence values. Use #S3P_SEQ_MASKED macro to truncate the passed
  * sequence number to the correct number of bits
 */
-extern void s3p_init_pkt(s3p_packet_t *pkt_out, uint8_t *pkt_buf,
+extern void s3p_init_pkt(s3p_packet_t *pkt, uint8_t *pkt_buf,
         const uint8_t src_id, const uint8_t dst_id,
         const uint8_t flags_seq);
 
 /**
  * @brief Encodes a frame for serial transmission from a #s3p_packet_t
  * packet structure description
- * @param buf Pointer to a buffer that will contain the frame ready to
+ * @param frame_buf Pointer to a buffer that will contain the frame ready to
  * be sent. Must be at least #S3P_MAX_FRAME_SIZE bytes in size.
  * @param pkt_out Pointer to packet structure to be encoded
  * @return Size of the encoded frame, 0 in case of encoding error
 */
-extern uint16_t s3p_make_frame(uint8_t *buf, const s3p_packet_t *pkt_out);
+extern uint16_t s3p_make_frame(uint8_t *frame_buf, const s3p_packet_t *pkt_out);
 
 /**
  * @brief Helper function to decode error codes to string

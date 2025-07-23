@@ -58,21 +58,21 @@ bool s3p_parse_frame(s3p_packet_t *pkt, const uint8_t dst_id,
     return true;
 }
 
-void s3p_init_pkt(s3p_packet_t *pkt_out, uint8_t *pkt_buf,
+void s3p_init_pkt(s3p_packet_t *pkt, uint8_t *pkt_buf,
         const uint8_t src_id, const uint8_t dst_id,
         const uint8_t flags_seq)
 {
-    pkt_out->buf = pkt_buf;
+    pkt->buf = pkt_buf;
     memset(pkt_buf, 0x00, S3P_MAX_PKT_SIZE);
-    pkt_out->src_id = src_id;
-    pkt_out->dst_id = dst_id;
-    pkt_out->flags_seq = flags_seq;
-    pkt_out->type = PT_NONE;
-    pkt_out->data_len = 0;
-    pkt_out->data = &pkt_out->buf[6];
+    pkt->src_id = src_id;
+    pkt->dst_id = dst_id;
+    pkt->flags_seq = flags_seq;
+    pkt->type = PT_NONE;
+    pkt->data_len = 0;
+    pkt->data = &pkt->buf[6];
 }
 
-uint16_t s3p_make_frame(uint8_t *buf, const s3p_packet_t *pkt_out)
+uint16_t s3p_make_frame(uint8_t *frame_buf, const s3p_packet_t *pkt_out)
 {
     uint16_t pkt_size = 0;
 
@@ -96,14 +96,14 @@ uint16_t s3p_make_frame(uint8_t *buf, const s3p_packet_t *pkt_out)
     DBG(2, "         data_len=%u, crc=0x%04X\n",
             pkt_out->data_len, crc);
 
-    cobs_encode_result res = cobs_encode(buf, S3P_MAX_FRAME_SIZE,
+    cobs_encode_result res = cobs_encode(frame_buf, S3P_MAX_FRAME_SIZE,
             pkt_out->buf, pkt_size);
 
     if (res.status == COBS_ENCODE_OK) {
         DBG(2, "Encode ok: in_len=%u, out_len=%lu\n",
                 pkt_size, res.out_len);
         // Add terminator
-        buf[res.out_len] = 0x00;
+        frame_buf[res.out_len] = 0x00;
         return res.out_len + 1;
     }
 
