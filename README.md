@@ -2,7 +2,7 @@ S3P: Simple Serial Space Protocol
 =================================
 
 Welcome to S3P (Simple Serial Space Protocol), a lightweight serial
-communication protocol designed for telemetry and telecommand (TM/TC) in
+communication protocol designed for telemetry and telecommand (TM/TC) for
 space hardware.
 
 S3P provides a simple, reliable, and efficient solution for wired
@@ -236,7 +236,7 @@ S3P is licensed under the MIT License (LICENSE). You are free to use,
 modify, and distribute this software, provided you include the license
 and copyright notice.
 Copyright © 2025 Paradigma Technologies Telekomunikacijske Tehnologije
-d.o.o. (paradigma-tech.com) 
+d.o.o. [paradigma-tech.com](https://paradigma-tech.com)
 
 ### References/Other libraries
 
@@ -250,7 +250,7 @@ Contact
 
 For questions, feedback, or collaboration opportunities, reach out to us:
 
-- Website: paradigma-tech.com
+- Website: [paradigma-tech.com](https://paradigma-tech.com)
 - Email: info@paradigma-tech.com
 - We’re excited to see S3P empower the space community!
 
