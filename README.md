@@ -27,7 +27,7 @@ Table of Contents
 - License (#license)
 - Contact (#contact)
 
-
+<a name="overview"></a>
 Overview
 --------
 
@@ -39,6 +39,7 @@ as small footprint, packet integrity, and compatibility with
 microcontrollers and FPGAs.
 
 
+<a name="key-features"></a>
 Key Features
 ------------
 
@@ -52,6 +53,7 @@ Key Features
     and adaptation.
 
 
+<a name="use-cases"></a>
 Use Cases
 ---------
 
@@ -61,6 +63,7 @@ Use Cases
 - Prototyping and testing TM/TC systems in academic or commercial projects.
 
 
+<a name="getting-started"></a>
 Getting Started
 ---------------
 
@@ -72,6 +75,7 @@ To use S3P, you’ll need:
     (or you can implement your own using the specification in doc/)
 
 
+<a name="prerequisites"></a>
 Prerequisites
 -------------
 
@@ -80,6 +84,7 @@ Prerequisites
 - Add any specific hardware or software requirements for S3P.
 
 
+<a name="installation"></a>
 Installation
 ------------
 
@@ -91,6 +96,7 @@ Clone the repository:
     (#usage) for details).
 
 
+<a name="usage"></a>
 Usage
 -----
 
@@ -149,6 +155,7 @@ Usage
 For a complete example and implementation, see the s3psh/ folder
 
 
+<a name="s3psh"></a>
 S3Psh
 -----
 
@@ -168,6 +175,7 @@ the protocol, and is always up-to-date to the specification in doc/
 - `./s3psh -i <REMOTE_ID> -m <LOCAL_ID> /dev/ttyUSB0`
 
 
+<a name="contributing"></a>
 Contributing
 ------------
 
@@ -183,6 +191,7 @@ Please read CONTRIBUTING.md for guidelines on code style, testing and
 submitting changes.
 
 
+<a name="license"></a>
 License
 -------
 
@@ -198,6 +207,7 @@ d.o.o. (paradigma-tech.com)
   and [COBS-C](https://github.com/cmcqueen/cobs-c)
 
 
+<a name="contact"></a>
 Contact
 -------
 
