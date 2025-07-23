@@ -588,8 +588,8 @@ Note: Buffer section size corresponds to Packet Lenght - 4 (Address size)
 Changelog
 =========
 
-v1.0
-----
+v1.00, 2025-07-23
+-----------------
 
-- Initial release
+- First public release release
 
