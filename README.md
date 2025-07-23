@@ -102,8 +102,9 @@ Usage
 
 - Prepare an outgoing request packet:
 
+        static uint8_t pkt_out_buf[S3P_MAX_PKT_SIZE];
         packet_t pkt_out;
-        s3p_init_pkt_out(&pkt_out, <OUR_ID>, <NODE_ID>, <SEQ_NUM>);
+        s3p_init_pkt(&pkt_out, pkt_out_buf, <OUR_ID>, <NODE_ID>, <SEQ_NUM>);
 
 - Populate packet Data (payload) section as per specification (e.g. for
     the Exec Command request)
@@ -121,38 +122,74 @@ Usage
         pkt_out.data_len = data_len;
         pkt_out.type = PT_EXEC_CMD;
 
-- Create serial frame (NOTE: ser_buf will be used for outgoing request
+- Create serial frame (NOTE: frame_buf will be used for outgoing request
     and incoming response frame):
 
-        ser_buf[S3P_MAX_RX_TX_SIZE];
-        int size = s3p_make_frame(ser_buf, &pkt_out);
+        frame_buf[S3P_MAX_RX_TX_SIZE];
+        int size = s3p_make_frame(frame_buf, &pkt_out);
         // Check size
         if (!size)
             return;
 
 - Write to serial device (serial port initialization not shown here):
 
-        ser_write(&ser, ser_buf, size);
+        ser_write(&ser, frame_buf, size);
 
-- Wait for response and optionally check for sequence correctness :
+- Wait for a full frame response and pares it into a packet:
 
-        // Note: wait_response will save incoming data into ser_buf and set
-        // a pointer to the received Data (payload) in pkt_in
+        // Example of wait_response() function
+        static bool wait_response(s3p_packet_t *pkt_in)
+        {
+            static uint8_t pkt_in_buf[S3P_MAX_PKT_SIZE];
+            int nbytes;
+            uint8_t byt;
+            uint16_t rx_len = 0;
+            timeout_start()
+            while (!timeout_elapsed())) ) {
+                nbytes = ser_read(&ser, &byt, 1);
+                if (!nbytes) {
+                    usleep(BYTE_DELAY);
+                    continue;
+                }
+                if (rx_len < S3P_MAX_FRAME_SIZE)
+                    frame_buf[rx_len++] = byt;
+
+                if (byt == S3P_COBS_DELIM) {
+                    // Init packet with packet buffer ptr and dummy values
+                    s3p_init_pkt(pkt_in, pkt_in_buf, S3P_ID_NONE, S3P_ID_NONE,
+                            S3P_SEQ_NONE);
+                    // Parse received frame into packet
+                    bool res = s3p_parse_frame(pkt_in, manager_id, frame_buf,
+                            rx_len-1);
+                    return res;
+                }
+            }
+        }
+
+        // Note: wait_response will save incoming data into frame_buf
+        // and set a pointer to the received Data (payload) in pkt_in
         packet_t pkt_in;
         if (!wait_response(&pkt_in))
             return;
-        if (!check_seq(&pkt_in))
-            return;
 
-- Check response code and other data if available
-
-        code = pkt_in.data[0];
-        if (code != S3P_ERR_NONE) {
-            printf("Read error: %s (%u)\n", s3p_err_str(code), code);
+        // Optionally check for correct sequence number, i.e. that the
+        // received sequence is the same as the sent sequence
+        if (S3P_SEQ_MASKED(pkt_in.flags_seq) != <SEQ_NUM>) {
+            // Sequence error
             return;
         }
 
-For a complete example and implementation, see the s3psh/ folder
+- Check response code and deserialize other data/payload if available:
+
+        code = pkt_in.data[0];
+        if (code != S3P_ERR_NONE) {
+            return;
+        }
+
+For a complete example and implementation, see the s3psh/ folder.
+
+There is also a Doxygen project file under doc/ to generate basic
+library documentation
 
 
 <a name="s3psh"></a>
