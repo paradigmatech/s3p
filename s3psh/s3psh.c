@@ -20,7 +20,7 @@
 // - optimization: in rlist <regid> show info from local table if present
 // - optimization: in get <regid> show reg name and type from local table
 
-#define VER             "1.00"
+#define VER             "1.01"
 #define M_MIN(_x,_y)    ( ( (_x) > (_y) ) ? (_y) : (_x) )
 #define BYTE_DELAY      10000UL // 10ms
 #define DEF_MANAGER_ID  0x6A
@@ -140,7 +140,7 @@ static void show_help(void)
     DBG(0, "\n");
     DBG(0, "\n");
     DBG(0, "Commands:\n");
-    DBG(0, "  node [node_id(d)]                         - show or set remote node id\n");
+    DBG(0, "  node [node_id(d)]                         - show or select remote node id\n");
     DBG(0, "  info                                      - get node S3P version info\n");
     DBG(0, "  ping                                      - ping remote node\n");
     DBG(0, "  reboot                                    - reboot remote node\n");
