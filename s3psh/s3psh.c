@@ -26,6 +26,7 @@
 #define DEF_MANAGER_ID  0x6A
 #define DEF_NODE_ID     0x2A
 #define RESP_TO_MS      10000
+#define PROMPT          "\n> "
 
 // Flags regs
 #define F_NONE          0x0000
@@ -1413,11 +1414,11 @@ int main(int argc, char **argv)
     while (1) {
 #ifndef USE_READLINE
         memset(cmd_line, 0x00, sizeof(cmd_line));
-        DBG(0, "\n> ");
+        DBG(0, PROMPT);
 #endif
 
 #ifdef USE_READLINE
-        char *cmd_line = readline("\n> ");
+        char *cmd_line = readline(PROMPT);
         if (cmd_line == NULL)
             continue;
         if (strlen(cmd_line) > 0)
