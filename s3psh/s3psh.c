@@ -46,6 +46,8 @@
 #ifdef USE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
+#define HISTORY_FILE    ".s3psh_history"
+#define HISTORY_MAX_LEN 1000
 #endif
 
 typedef enum {
@@ -1403,6 +1405,9 @@ int main(int argc, char **argv)
     //signal(SIGTERM, catch_signal);
     signal(SIGINT, catch_signal);
 
+    stifle_history(HISTORY_MAX_LEN);
+    read_history(HISTORY_FILE);
+
     show_help();
 
     while (1) {
@@ -1422,7 +1427,7 @@ int main(int argc, char **argv)
 #endif
         if (cmd_line[0] == 'q') {
             DBG(0, "Quit\n");
-            return 0;
+            goto exit;
         }
 
         //int args_cnt = sscanf(cmd_line, "r%d:%s ", &parg, cmd);
@@ -1439,12 +1444,12 @@ int main(int argc, char **argv)
             }
             else {
                 DBG(0, "Unknown prefix '%c'\n", prefix);
-                goto exit;
+                goto exit_loop;
             }
             char *sep = strchr(cmd_line, ':');
             if (sep == NULL) {
                 DBG(0, "Wrong syntax\n");
-                goto exit;
+                goto exit_loop;
             }
             args_off = sep - cmd_line + strlen(cmd) + 1;
         }
@@ -1452,7 +1457,7 @@ int main(int argc, char **argv)
             repeat = 0;
             args_cnt = sscanf(cmd_line, "%s ", cmd);
             if (args_cnt < 1)
-                goto exit;
+                goto exit_loop;
             args_off = strlen(cmd);
         }
 
@@ -1473,12 +1478,15 @@ int main(int argc, char **argv)
             else
                 break;
         }
+
+exit_loop:
 #ifdef USE_READLINE
-exit:
         free(cmd_line);
 #endif
-
     }
+
+exit:
+    write_history(HISTORY_FILE);
 
     return 0;
 }
