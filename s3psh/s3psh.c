@@ -26,7 +26,7 @@
 #define DEF_MANAGER_ID  0x6A
 #define DEF_NODE_ID     0x2A
 #define RESP_TO_MS      10000
-#define PROMPT          "\n> "
+#define PROMPT          "\ns3psh> "
 
 // Flags regs
 #define F_NONE          0x0000
