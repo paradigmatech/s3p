@@ -14,6 +14,7 @@
 #include "value.h"
 #include "s3psh_utils.h"
 #include "s3p_dbg.h"
+#include "colors.h"
 
 // TODO:
 // - check for ser_write() errors
@@ -26,7 +27,7 @@
 #define DEF_MANAGER_ID  0x6A
 #define DEF_NODE_ID     0x2A
 #define RESP_TO_MS      10000
-#define PROMPT          "\ns3psh> "
+#define PROMPT          C_GRN "\ns3psh> " C_NRM
 
 // Flags regs
 #define F_NONE          0x0000
