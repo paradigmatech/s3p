@@ -215,6 +215,20 @@ static const char *group_name(reg_group_t group_id)
     return "UNK";
 }
 
+static char *get_reg_name_by_id(uint16_t id)
+{
+    if (regs_table != NULL) {
+        reg_t *reg = regs_table;
+        while (reg->id != REGS_END) {
+            if (reg->id == id)
+                return reg->name;
+            reg++;
+        }
+    }
+
+    return "";
+}
+
 static uint8_t seq_inc(void)
 {
     seq_num++;
@@ -381,6 +395,8 @@ static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
         DBG(0, "Read error: %s (%u)\n", s3p_err_str(code), code);
         return;
     }
+    DBG(0, "  idx |  id | name                 | type |      value\n");
+    DBG(0, "------+-----+----------------------+------+-----------\n");
     while (size+S3P_SER_ITEM_SIZE <= pkt_in.data_len) {
         // This is safe becaus size of union value.val is > 4
         // Note that buf is not guaranteed to be 4 bytes aligned
@@ -396,16 +412,20 @@ static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
         value.val.u32 |= ((uint32_t)pkt_in.data[size++]) << 8;
         value.val.u32 |= (uint32_t)pkt_in.data[size++];
         cnt++;
-        name = "";
+        name = get_reg_name_by_id(id);
         if (VALUE_TYPE_IS_SCALAR(value.vt)) {
             value_dump(value_str, &value, VALUE_SCALAR_MAX_SIZE);
-            DBG(0, "[%3u] %3u %-20s %3s   %s\n", cnt, id, name,
+            DBG(0, "[%3u] | %3u | %-20s | %4s | %10s\n", cnt, id, name,
                     value_type_str(value.vt), value_str);
         }
         else {
-            DBG(0, "[%3u] %3u %-20s %3s   NOT SCALAR\n", cnt, id, name,
+            DBG(0, "[%3u] | %3u | %-20s | %4s | NOT SCALAR\n", cnt, id, name,
                     value_type_str(value.vt));
         }
+    }
+    if (regs_table == NULL) {
+        DBG(0, "(Local table not present, use 'rlist' to download it\n");
+        DBG(0, "and display registers names)\n");
     }
     DBG(0, "Response ok\n");
 }
@@ -461,6 +481,7 @@ static void exec_rstr(const uint16_t reg_id)
     uint16_t id;
     char *str;
     value_type_t vt;
+    const char *name = "";
 
     s3p_init_pkt(&pkt_out, pkt_out_buf, manager_id, node_id, seq_inc());
     // Reg id
@@ -494,8 +515,16 @@ static void exec_rstr(const uint16_t reg_id)
     vt = ((uint8_t)pkt_in.data[size++]);
     // String
     str = (char *)&pkt_in.data[size];
-    const char *name = "";
-    DBG(0, "%3u %-20s %3s   '%s'\n", id, name, value_type_str(vt), str);
+
+    name = get_reg_name_by_id(id);
+    DBG(0, "  id | name                 | type |       text\n");
+    DBG(0, "-----+----------------------+------+-----------\n");
+    DBG(0, " %3u | %-20s | %4s | %10s\n", id, name, value_type_str(vt), str);
+    if (regs_table == NULL) {
+        DBG(0, "(Local table not present, use 'rlist' to download it\n");
+        DBG(0, "and display registers names)\n");
+    }
+    DBG(0, "Response ok\n");
 }
 
 static void exec_info(void)
@@ -613,7 +642,7 @@ static void exec_rinfo(const uint16_t reg_id)
     // Info
     name = (char *)&pkt_in.data[size];
     DBG(0, " group    |  id | name                 | type | flags\n");
-    DBG(0, "-----------+-----+----------------------+------+--------\n");
+    DBG(0, "----------+-----+----------------------+------+--------\n");
     DBG(0, " %-9s| %3u | %-20s | %4s | %c%c\n", group_name(group_id),
             id, name, value_type_str(vt),
             flags&F_MUTABLE?'M':' ', flags&F_PERSIST?'P':' ');
