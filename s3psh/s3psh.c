@@ -680,6 +680,11 @@ static bool exec_rinfo(const uint16_t reg_id)
     return true;
 }
 
+static int regs_compare(const void *r1, const void *r2)
+{
+    return ((const reg_t *)r1)->id - ((const reg_t *)r2)->id;
+}
+
 static bool exec_rlist(void)
 {
     s3p_packet_t pkt_out;
@@ -821,6 +826,8 @@ static bool exec_rlist(void)
             break;
         reg_id = next_id;
     }
+    // Sort table
+    qsort(regs_table, cnt, sizeof(reg_t), regs_compare);
     // Add regs table end marker
     reg->id = REGS_END;
     // Summary
