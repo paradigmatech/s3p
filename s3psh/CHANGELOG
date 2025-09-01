@@ -1,0 +1,27 @@
+S3PSH Changelog
+===============
+
+v1.10 2025-09-01
+----------------
+
+- Show register name if available (i.e. registers table has been
+  downloaded beforehand with rlist command)
+
+- Initial tab completion (for registers name only)
+
+- Fix downloaded registers table not being ordered by command id
+
+- Last operation status based on prompt color (green/red)
+
+- Added persistent history in .s3psh_history, max 1000 entries
+
+- Colouring support for tables and registers lists
+
+- Several minor fixes to responses/info
+
+
+v1.01 2025-07-25
+----------------
+
+- Initial release
+
