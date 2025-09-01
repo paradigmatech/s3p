@@ -358,6 +358,24 @@ static bool exec_ping(void)
     return true;
 }
 
+static void reg_header(void)
+{
+    DBG(0, "  idx |  id | name                 | type |      value\n");
+    DBG(0, "------+-----+----------------------+------+-----------\n");
+}
+
+static void str_header(void)
+{
+    DBG(0, "  id | name                 | type |       text\n");
+    DBG(0, "-----+----------------------+------+-----------\n");
+}
+
+static void rshow_header(void)
+{
+    DBG(0, " group    |  id | name                 | type | flags\n");
+    DBG(0, "----------+-----+----------------------+------+--------\n");
+}
+
 static bool exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
 {
     s3p_packet_t pkt_out;
@@ -400,8 +418,7 @@ static bool exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
         DBG(0, "Read error: %s (%u)\n", s3p_err_str(code), code);
         return false;
     }
-    DBG(0, "  idx |  id | name                 | type |      value\n");
-    DBG(0, "------+-----+----------------------+------+-----------\n");
+
     while (size+S3P_SER_ITEM_SIZE <= pkt_in.data_len) {
         // This is safe becaus size of union value.val is > 4
         // Note that buf is not guaranteed to be 4 bytes aligned
@@ -526,8 +543,7 @@ static bool exec_rstr(const uint16_t reg_id)
     str = (char *)&pkt_in.data[size];
 
     name = get_reg_name_by_id(id);
-    DBG(0, "  id | name                 | type |       text\n");
-    DBG(0, "-----+----------------------+------+-----------\n");
+    str_header();
     DBG(0, " %3u | %-20s | %4s | %10s\n", id, name, value_type_str(vt), str);
     if (regs_table == NULL) {
         DBG(0, "(Local table not present, use 'rlist' to download it\n");
@@ -654,8 +670,7 @@ static bool exec_rinfo(const uint16_t reg_id)
     flags |= (uint16_t)pkt_in.data[size++];
     // Info
     name = (char *)&pkt_in.data[size];
-    DBG(0, " group    |  id | name                 | type | flags\n");
-    DBG(0, "----------+-----+----------------------+------+--------\n");
+    rshow_header();
     DBG(0, " %-9s| %3u | %-20s | %4s | %c%c\n", group_name(group_id),
             id, name, value_type_str(vt),
             flags&F_MUTABLE?'M':' ', flags&F_PERSIST?'P':' ');
@@ -826,8 +841,7 @@ static bool exec_rshow(void)
 
     reg_t *reg = regs_table;
 
-    DBG(0, " group    |  id | name                 | type | flags\n");
-    DBG(0, "----------+-----+----------------------+------+--------\n");
+    rshow_header();
     while (reg->id != REGS_END) {
         DBG(0, " %-9s| %3u | %-20s | %4s | %c%c\n", group_name(reg->group_id),
                 reg->id, reg->name, value_type_str(reg->vt),
@@ -1254,12 +1268,14 @@ static bool manage_cmd(const char *cmd, const char *args)
         uint16_t reg_id, regs_cnt;
         int args_cnt = sscanf(args, "%hu+%hu", &reg_id, &regs_cnt);
         if (args_cnt == 2) {
+            reg_header();
             return exec_rregs(reg_id, regs_cnt);
         }
         else {
             char *dup = strdup(args);
             char *ptr = strtok(dup, " ");
             int cnt = 0;
+            reg_header();
             if (ptr != NULL) {
                 cnt++;
                 reg_id = strtol(ptr, NULL, 0);
