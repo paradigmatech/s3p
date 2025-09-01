@@ -3,7 +3,7 @@ OPT_CFLAGS = -O0 -g -Wall
 #OPT_CFLAGS = -O0 -g
 CFLAGS = $(OPT_CFLAGS)
 # If libreadline is not available, comment this line and undef
-# USE_READLINE in client.c
+# USE_READLINE in s3psh.c
 LFLAGS = -lreadline
 CC = gcc
 CXX = g++
