@@ -27,7 +27,8 @@
 #define DEF_MANAGER_ID  0x6A
 #define DEF_NODE_ID     0x2A
 #define RESP_TO_MS      10000
-#define PROMPT          C_GRN "\ns3psh> " C_NRM
+#define PROMPT_OK       C_GRN "\ns3psh> " C_NRM
+#define PROMPT_ERR      C_RED "\ns3psh> " C_NRM
 
 // Flags regs
 #define F_NONE          0x0000
@@ -277,7 +278,7 @@ static bool wait_response(s3p_packet_t *pkt_in)
     return false;
 }
 
-static void exec_cmd(const uint8_t cmd_id, const uint32_t arg)
+static bool exec_cmd(const uint8_t cmd_id, const uint32_t arg)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -298,24 +299,26 @@ static void exec_cmd(const uint8_t cmd_id, const uint32_t arg)
     pkt_out.type = PT_EXEC_CMD;
     size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     code = pkt_in.data[0];
     DBG(1, "EXEC CMD RESP: data_len=%u, res_code=%u\n", pkt_in.data_len,
             code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Read error: %s (%u)\n", s3p_err_str(code), code);
-        return;
+        return false;
     }
+
+    return true;
 }
 
-static void exec_ping(void)
+static bool exec_ping(void)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -334,26 +337,28 @@ static void exec_ping(void)
     pkt_out.type = PT_EXEC_CMD;
     size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     start_ms = client_utils_get_ms();
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     code = pkt_in.data[0];
     DBG(1, "EXEC PING: data_len=%u, res_code=%u\n", pkt_in.data_len,
             code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Read error: %s (%u)\n", s3p_err_str(code), code);
-        return;
+        return false;
     }
     DBG(0, "PING ok, latency: %u ms\n", client_utils_elapsed_ms(start_ms));
+
+    return true;
 }
 
-static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
+static bool exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -378,13 +383,13 @@ static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
     pkt_out.type = PT_READ_REGS;
     size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     size = 0;
     cnt = 0;
@@ -393,7 +398,7 @@ static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
             pkt_in.data_len, code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Read error: %s (%u)\n", s3p_err_str(code), code);
-        return;
+        return false;
     }
     DBG(0, "  idx |  id | name                 | type |      value\n");
     DBG(0, "------+-----+----------------------+------+-----------\n");
@@ -428,9 +433,10 @@ static void exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
         DBG(0, "and display registers names)\n");
     }
     DBG(0, "Response ok\n");
+    return true;
 }
 
-static void exec_wreg(const uint16_t reg_id, const value_t *value)
+static bool exec_wreg(const uint16_t reg_id, const value_t *value)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -454,13 +460,13 @@ static void exec_wreg(const uint16_t reg_id, const value_t *value)
     pkt_out.type = PT_WRITE_REG;
     size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     size = 0;
     code = pkt_in.data[size++];
@@ -468,10 +474,13 @@ static void exec_wreg(const uint16_t reg_id, const value_t *value)
             pkt_in.data_len, code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Write error: %s (%u)\n", s3p_err_str(code), code);
+        return false;
     }
+
+    return true;
 }
 
-static void exec_rstr(const uint16_t reg_id)
+static bool exec_rstr(const uint16_t reg_id)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -492,13 +501,13 @@ static void exec_rstr(const uint16_t reg_id)
     pkt_out.type = PT_READ_STR_REG;
     size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     size = 0;
     code = pkt_in.data[size++];
@@ -506,7 +515,7 @@ static void exec_rstr(const uint16_t reg_id)
             pkt_in.data_len, code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Read error: %s (%u)\n", s3p_err_str(code), code);
-        return;
+        return false;
     }
     // Id
     id = ((uint16_t)pkt_in.data[size++]) << 8;
@@ -525,9 +534,11 @@ static void exec_rstr(const uint16_t reg_id)
         DBG(0, "and display registers names)\n");
     }
     DBG(0, "Response ok\n");
+
+    return true;
 }
 
-static void exec_info(void)
+static bool exec_info(void)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -546,13 +557,13 @@ static void exec_info(void)
     pkt_out.type = PT_S3P_INFO;
     size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     size = 0;
     code = pkt_in.data[size++];
@@ -560,7 +571,7 @@ static void exec_info(void)
             pkt_in.data_len, code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Table info error: %s (%u)\n", s3p_err_str(code), code);
-        return;
+        return false;
     }
     // Version
     ver = ((uint16_t)pkt_in.data[size++]) << 8;
@@ -585,9 +596,11 @@ static void exec_info(void)
     DBG(0, "  regs cnt : %3u\n", regs_cnt);
     DBG(0, "  vmem maps: %3u %s\n", vmem_rows, vmem_rows?"":"(NOT SUPPORTED)");
     DBG(0, "Response ok\n");
+
+    return true;
 }
 
-static void exec_rinfo(const uint16_t reg_id)
+static bool exec_rinfo(const uint16_t reg_id)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -610,13 +623,13 @@ static void exec_rinfo(const uint16_t reg_id)
     pkt_out.type = PT_REG_INFO;
     size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     size = 0;
     code = pkt_in.data[size++];
@@ -624,7 +637,7 @@ static void exec_rinfo(const uint16_t reg_id)
             pkt_in.data_len, code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Reg info error: %s (%u)\n", s3p_err_str(code), code);
-        return;
+        return false;
     }
     // Id
     id = ((uint16_t)pkt_in.data[size++]) << 8;
@@ -647,9 +660,11 @@ static void exec_rinfo(const uint16_t reg_id)
             id, name, value_type_str(vt),
             flags&F_MUTABLE?'M':' ', flags&F_PERSIST?'P':' ');
     DBG(0, "Response ok\n");
+
+    return true;
 }
 
-static void exec_rlist(void)
+static bool exec_rlist(void)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -676,13 +691,13 @@ static void exec_rlist(void)
     pkt_out.type = PT_S3P_INFO;
     uint16_t size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     size = 0;
     code = pkt_in.data[size++];
@@ -690,7 +705,7 @@ static void exec_rlist(void)
             pkt_in.data_len, code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Table info error: %s (%u)\n", s3p_err_str(code), code);
-        return;
+        return false;
     }
     // Version
     ver = ((uint16_t)pkt_in.data[size++]) << 8;
@@ -710,7 +725,7 @@ static void exec_rlist(void)
 
     if (!reg_min_id || !regs_cnt) {
         DBG(0, "Invalid table info\n");
-        return;
+        return false;
     }
 
     // Allocate regs_table
@@ -720,7 +735,7 @@ static void exec_rlist(void)
     regs_table = calloc(regs_cnt+1, sizeof(reg_t));
     if (regs_table == NULL) {
         DBG(0, "Failed to allocate regs table\n");
-        return;
+        return false;
     }
     reg_t *reg = regs_table;
 
@@ -796,13 +811,17 @@ static void exec_rlist(void)
     DBG(0, "\n");
     DBG(0, "Got %u reg of %u, %s\n", cnt, regs_cnt,
             cnt == regs_cnt ? "OK" : "ERROR");
+
+    return cnt == regs_cnt;
 }
 
-static void exec_rshow(void)
+static bool exec_rshow(void)
 {
+    bool res = true;
+
     if (regs_table == NULL) {
         DBG(0, "Local table not found, forcing download...\n");
-        exec_rlist();
+        res = exec_rlist();
     }
 
     reg_t *reg = regs_table;
@@ -815,9 +834,11 @@ static void exec_rshow(void)
                 reg->flags&F_MUTABLE?'M':' ', reg->flags&F_PERSIST?'P':' ');
         reg++;
     }
+
+    return res;
 }
 
-static void exec_vlist(void)
+static bool exec_vlist(void)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -839,13 +860,13 @@ static void exec_vlist(void)
     pkt_out.type = PT_S3P_INFO;
     uint16_t size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     size = 0;
     code = pkt_in.data[size++];
@@ -853,7 +874,7 @@ static void exec_vlist(void)
             pkt_in.data_len, code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "VMEM info error: %s (%u)\n", s3p_err_str(code), code);
-        return;
+        return false;
     }
     // Version
     size++; // ver = ((uint16_t)pkt_in.data[size++]) << 8;
@@ -872,7 +893,7 @@ static void exec_vlist(void)
 
     if (!vmem_rows) {
         DBG(0, "Invalid VMEM info\n");
-        return;
+        return false;
     }
 
     // Allocate vmem_table
@@ -882,7 +903,7 @@ static void exec_vlist(void)
     vmem_table = calloc(vmem_rows+1, sizeof(vmem_t));
     if (vmem_table == NULL) {
         DBG(0, "Failed to allocate regs table\n");
-        return;
+        return false;
     }
     vmem_t *vmem = vmem_table;
 
@@ -965,13 +986,16 @@ static void exec_vlist(void)
     DBG(0, "\n");
     DBG(0, "Got %u vmem items of %u, %s\n", cnt, vmem_rows,
             cnt == vmem_rows ? "OK" : "ERROR");
+
+    return true;
 }
 
-static void exec_vshow(void)
+static bool exec_vshow(void)
 {
+    bool res = true;
     if (vmem_table == NULL) {
         DBG(0, "Local table not found, forcing download...\n");
-        exec_vlist();
+        res = exec_vlist();
     }
 
     vmem_t *vmem = vmem_table;
@@ -990,9 +1014,11 @@ static void exec_vshow(void)
                 vmem->type2!=MT_NONE?mem_type_str(vmem->type2):"");
         vmem++;
     }
+
+    return res;
 }
 
-static void exec_wstr(const uint16_t reg_id, const char *str)
+static bool exec_wstr(const uint16_t reg_id, const char *str)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in;
@@ -1015,13 +1041,13 @@ static void exec_wstr(const uint16_t reg_id, const char *str)
     pkt_out.type = PT_WRITE_STR_REG;
     size = s3p_make_frame(frame_buf, &pkt_out);
     if (!size)
-        return;
+        return false;
 
     ser_write(&ser, frame_buf, size);
     if (!wait_response(&pkt_in))
-        return;
+        return false;
     if (!check_seq(&pkt_in))
-        return;
+        return false;
 
     size = 0;
     code = pkt_in.data[size++];
@@ -1029,11 +1055,13 @@ static void exec_wstr(const uint16_t reg_id, const char *str)
             pkt_in.data_len, code);
     if (code != S3P_ERR_NONE) {
         DBG(0, "Write error: %s (%u)\n", s3p_err_str(code), code);
-        return;
+        return false;
     }
+
+    return true;
 }
 
-static void exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
+static bool exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in = { 0 };
@@ -1051,7 +1079,7 @@ static void exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
     FILE *fp = fopen(file, "w");
     if (fp == NULL) {
         DBG(0, "Can't open file '%s' for writing\n", file);
-        return;
+        return false;
     }
 
     ctrlc = 0;
@@ -1074,15 +1102,15 @@ static void exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
         DBG(1, "\nCHUNK REQ: rsize=%u, rbytes=%u\n", rsize, rbytes);
         size = s3p_make_frame(frame_buf, &pkt_out);
         if (!size)
-            return;
+            return false;
 
         memset(&pkt_in, 0x00, sizeof(s3p_packet_t));
         ser_write(&ser, frame_buf, size);
         //ser_discard(&ser);
         if (!wait_response(&pkt_in))
-            return;
+            return false;
         if (!check_seq(&pkt_in))
-            return;
+            return false;
 
         // Code
         code = pkt_in.data[0];
@@ -1104,16 +1132,18 @@ static void exec_down(uint32_t addr, const uint32_t tot_size, const char *file)
         }
     }
 
-    DBG(0, "\nDownload complete: got %u bytes of %u\n", rbytes, tot_size);
-    if (rbytes == tot_size)
-        DBG(0, "File download ok\n");
-    else
-        DBG(0, "File download error\n");
-
     fclose(fp);
+    DBG(0, "\nDownload complete: got %u bytes of %u\n", rbytes, tot_size);
+    if (rbytes != tot_size) {
+        DBG(0, "File download error\n");
+        return false;
+    }
+
+    DBG(0, "File download ok\n");
+    return true;
 }
 
-static void exec_up(uint32_t addr, const char *file)
+static bool exec_up(uint32_t addr, const char *file)
 {
     s3p_packet_t pkt_out;
     s3p_packet_t pkt_in = { 0 };
@@ -1129,7 +1159,7 @@ static void exec_up(uint32_t addr, const char *file)
     FILE *fp = fopen(file, "r");
     if (fp == NULL) {
         DBG(0, "Can't open file '%s' for reading\n", file);
-        return;
+        return false;
     }
     fseek(fp, 0L, SEEK_END);
     uint32_t tot_size = (uint32_t)ftell(fp);
@@ -1155,15 +1185,15 @@ static void exec_up(uint32_t addr, const char *file)
 
         size = s3p_make_frame(frame_buf, &pkt_out);
         if (!size)
-            return;
+            return false;
 
         memset(&pkt_in, 0x00, sizeof(s3p_packet_t));
         ser_write(&ser, frame_buf, size);
         //ser_discard(&ser);
         if (!wait_response(&pkt_in))
-            return;
+            return false;
         if (!check_seq(&pkt_in))
-            return;
+            return false;
 
         // Code
         code = pkt_in.data[0];
@@ -1180,16 +1210,20 @@ static void exec_up(uint32_t addr, const char *file)
     }
 
     DBG(0, "\nUpload complete: sent %u bytes of %u\n", wbytes, tot_size);
-    if (feof(fp))
-        DBG(0, "File upload ok\n");
-    else
+    if (!feof(fp)) {
+        fclose(fp);
         DBG(0, "File upload error\n");
+        return false;
+    }
 
     fclose(fp);
+    DBG(0, "File upload ok\n");
+    return true;
 }
 
-static void manage_cmd(const char *cmd, const char *args)
+static bool manage_cmd(const char *cmd, const char *args)
 {
+    bool res = true;
     //DBG(0, "MANAGE: cmd='%s'  args='%s'\n", cmd, args);
 
     if (IS_EQUAL(cmd, "node")) {
@@ -1206,22 +1240,21 @@ static void manage_cmd(const char *cmd, const char *args)
         int args_cnt = sscanf(args, "%hhx %u", &cmd_id, &arg);
         if (args_cnt != 2) {
             DBG(0, "Arg(s) missing or wrong\n");
-            return;
+            return false;
         }
-        exec_cmd(cmd_id, arg);
+        return exec_cmd(cmd_id, arg);
     }
     else if (IS_EQUAL(cmd, "ping")) {
-        exec_ping();
+        return exec_ping();
     }
     else if (IS_EQUAL(cmd, "reboot")) {
-        exec_cmd(CT_REBOOT, 0);
+        return exec_cmd(CT_REBOOT, 0);
     }
     else if (IS_EQUAL(cmd, "get")) {
         uint16_t reg_id, regs_cnt;
         int args_cnt = sscanf(args, "%hu+%hu", &reg_id, &regs_cnt);
         if (args_cnt == 2) {
-            exec_rregs(reg_id, regs_cnt);
-            return;
+            return exec_rregs(reg_id, regs_cnt);
         }
         else {
             char *dup = strdup(args);
@@ -1229,16 +1262,15 @@ static void manage_cmd(const char *cmd, const char *args)
             int cnt = 0;
             if (ptr != NULL) {
                 cnt++;
-                //reg_id = atoi(ptr);
                 reg_id = strtol(ptr, NULL, 0);
-                exec_rregs(reg_id, 1);
-                while ( (ptr=strtok(NULL, " ")) != NULL) {
+                res = exec_rregs(reg_id, 1);
+                while (res && (ptr=strtok(NULL, " "))!=NULL) {
                     cnt++;
                     reg_id = atoi(ptr);
-                    exec_rregs(reg_id, 1);
+                    res = exec_rregs(reg_id, 1);
                 }
                 free(dup);
-                return;
+                return res;
             }
             free(dup);
         }
@@ -1251,13 +1283,13 @@ static void manage_cmd(const char *cmd, const char *args)
         int args_cnt = sscanf(args, "%hu %s %s", &reg_id, vt_str, value_str);
         if (args_cnt != 3) {
             DBG(0, "Arg(s) missing or wrong\n");
-            return;
+            return false;
         }
         value_t value;
         value.vt = value_type_from_str(vt_str);
         if (value.vt == VT_EMPTY) {
             DBG(0, "Unknown value type: %s\n", vt_str);
-            return;
+            return false;
         }
         DBG(1, "WREG: type='%s', reg_id=%u, value_str='%s'\n",
                 value_type_str(value.vt), reg_id, value_str);
@@ -1274,18 +1306,18 @@ static void manage_cmd(const char *cmd, const char *args)
 
         if (args_cnt != 1) {
             DBG(0, "Arg(s) missing or wrong\n");
-            return;
+            return false;
         }
-        exec_wreg(reg_id, &value);
+        return exec_wreg(reg_id, &value);
     }
     else if (IS_EQUAL(cmd, "sget")) {
         uint16_t reg_id;
         int args_cnt = sscanf(args, "%hu", &reg_id);
         if (args_cnt != 1) {
             DBG(0, "Arg(s) missing or wrong\n");
-            return;
+            return false;
         }
-        exec_rstr(reg_id);
+        return exec_rstr(reg_id);
     }
     else if (IS_EQUAL(cmd, "sset")) {
         uint16_t reg_id;
@@ -1293,27 +1325,25 @@ static void manage_cmd(const char *cmd, const char *args)
         int args_cnt = sscanf(args, "%hu %s", &reg_id, str);
         if (args_cnt != 2) {
             DBG(0, "Arg(s) missing or wrong\n");
-            return;
+            return false;
         }
-        exec_wstr(reg_id, str);
+        return exec_wstr(reg_id, str);
     }
     else if (IS_EQUAL(cmd, "info")) {
-        exec_info();
+        return exec_info();
     }
     else if (IS_EQUAL(cmd, "rlist")) {
         char str[32];
         int args_cnt = sscanf(args, "%s", str);
         if (args_cnt == 1) {
             if (IS_EQUAL(str, "refresh")) {
-                exec_rlist();
-                return;
+                return exec_rlist();
             }
         }
         uint16_t reg_id;
         args_cnt = sscanf(args, "%hu", &reg_id);
         if (args_cnt == 1) {
-            exec_rinfo(reg_id);
-            return;
+            return exec_rinfo(reg_id);
         }
         exec_rshow();
     }
@@ -1322,8 +1352,7 @@ static void manage_cmd(const char *cmd, const char *args)
         int args_cnt = sscanf(args, "%s", str);
         if (args_cnt == 1) {
             if (IS_EQUAL(str, "refresh")) {
-                exec_vlist();
-                return;
+                return exec_vlist();
             }
             else {
                 DBG(0, "Arg %s not supported\n", str);
@@ -1338,9 +1367,9 @@ static void manage_cmd(const char *cmd, const char *args)
         int args_cnt = sscanf(args, "%x %u %s", &addr, &tot_size, file);
         if (args_cnt != 3) {
             DBG(0, "Arg(s) missing or wrong\n");
-            return;
+            return false;
         }
-        exec_down(addr, tot_size, file);
+        return exec_down(addr, tot_size, file);
     }
     else if (IS_EQUAL(cmd, "up") || IS_EQUAL(cmd, "upload")) {
         uint32_t addr;
@@ -1348,16 +1377,19 @@ static void manage_cmd(const char *cmd, const char *args)
         int args_cnt = sscanf(args, "%x %s", &addr, file);
         if (args_cnt != 2) {
             DBG(0, "Arg(s) missing or wrong\n");
-            return;
+            return false;
         }
-        exec_up(addr, file);
+        return exec_up(addr, file);
     }
     else if (IS_EQUAL(cmd, "h") || IS_EQUAL(cmd, "help") || IS_EQUAL(cmd, "?")) {
         show_help();
     }
     else {
         DBG(0, "Unknown command '%s'\n", cmd);
+        return false;
     }
+
+    return true;
 }
 
 int main(int argc, char **argv)
@@ -1371,6 +1403,7 @@ int main(int argc, char **argv)
     int args_off;
     char prefix;
     bool clean = false;
+    bool last_ok = true;
 
     DBG(0, "\nS3P Client Shell\n");
     DBG(0, "==================\n\n");
@@ -1444,11 +1477,11 @@ int main(int argc, char **argv)
     while (1) {
 #ifndef USE_READLINE
         memset(cmd_line, 0x00, sizeof(cmd_line));
-        DBG(0, PROMPT);
+        DBG(0, last_ok ? PROMPT_OK : PROMPT_ERR);
 #endif
 
 #ifdef USE_READLINE
-        char *cmd_line = readline(PROMPT);
+        char *cmd_line = readline(last_ok ? PROMPT_OK : PROMPT_ERR);
         if (cmd_line == NULL)
             continue;
         if (strlen(cmd_line) > 0)
@@ -1503,7 +1536,7 @@ int main(int argc, char **argv)
                 dump_ts();
                 DBG(0, " ================\n");
             }
-            manage_cmd(cmd, cmd_line+args_off);
+            last_ok = manage_cmd(cmd, cmd_line+args_off);
             if (repeat)
                 usleep(repeat*1000U);
             else
