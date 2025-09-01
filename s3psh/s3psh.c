@@ -27,6 +27,7 @@
 #define RESP_TO_MS      10000
 #define PROMPT_OK       C_GRN "\ns3psh> " C_NRM
 #define PROMPT_ERR      C_RED "\ns3psh> " C_NRM
+#define CSEP            C_FNT "|" C_NRM
 
 // Flags regs
 #define F_NONE          0x0000
@@ -358,20 +359,20 @@ static bool exec_ping(void)
 
 static void reg_header(void)
 {
-    DBG(0, "  idx |  id | name                 | type |      value\n");
-    DBG(0, "------+-----+----------------------+------+-----------\n");
+    DBG(0, C_FNT "  idx |  id | name                 | type |      value\n");
+    DBG(0, "------+-----+----------------------+------+-----------\n" C_NRM);
 }
 
 static void str_header(void)
 {
-    DBG(0, "  id | name                 | type |       text\n");
-    DBG(0, "-----+----------------------+------+-----------\n");
+    DBG(0, C_FNT "  id | name                 | type |       text\n");
+    DBG(0, "-----+----------------------+------+-----------\n" C_NRM);
 }
 
 static void rshow_header(void)
 {
-    DBG(0, " group    |  id | name                 | type | flags\n");
-    DBG(0, "----------+-----+----------------------+------+--------\n");
+    DBG(0, C_FNT " group    |  id | name                 | type | flags\n");
+    DBG(0, "----------+-----+----------------------+------+--------\n" C_NRM);
 }
 
 static void rlist_down_tip(void)
@@ -443,14 +444,16 @@ static bool exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
         name = get_reg_name_by_id(id);
         if (VALUE_TYPE_IS_SCALAR(value.vt)) {
             value_dump(value_str, &value, VALUE_SCALAR_MAX_SIZE);
-            DBG(0, "[%3u] | " C_YLW "%3u" C_NRM " | " C_GRN "%-20s" \
-                    C_NRM " | " C_BLU "%4s" C_NRM " | %10s\n", cnt, id,
-                    name, value_type_str(value.vt), value_str);
+            DBG(0, C_FNT "[%3u] " C_NRM CSEP  C_YLW " %3u " C_NRM CSEP \
+                    C_GRN " %-20s " C_NRM CSEP  C_BLU " %4s " C_NRM \
+                    CSEP " %10s\n", cnt, id, name,
+                    value_type_str(value.vt), value_str);
         }
         else {
-            DBG(0, "[%3u] | " C_YLW "%3u" C_NRM " | " C_GRN "%-20s" \
-                    C_NRM " | " C_BLU "%4s" C_NRM " NOT_SCALAR\n", cnt,
-                    id, name, value_type_str(value.vt));
+            DBG(0, C_FNT "[%3u] " C_NRM CSEP  C_YLW " %3u " C_NRM CSEP \
+                    C_GRN " %-20s " C_NRM CSEP C_BLU " %4s " C_NRM \
+                    "NOT_SCALAR\n", cnt, id, name,
+                    value_type_str(value.vt));
         }
     }
     return true;
@@ -547,7 +550,8 @@ static bool exec_rstr(const uint16_t reg_id)
 
     name = get_reg_name_by_id(id);
     str_header();
-    DBG(0, " %3u | %-20s | %4s | %10s\n", id, name, value_type_str(vt), str);
+    DBG(0, " %3u " CSEP " %-20s " CSEP " %4s " CSEP " %10s\n", id, name,
+            value_type_str(vt), str);
 
     return true;
 }
@@ -668,8 +672,9 @@ static bool exec_rinfo(const uint16_t reg_id)
     // Info
     name = (char *)&pkt_in.data[size];
     rshow_header();
-    DBG(0, " %-9s| %3u | %-20s | %4s | %c%c\n", group_name(group_id),
-            id, name, value_type_str(vt),
+    DBG(0, C_FNT " %-9s" C_NRM CSEP C_YLW " %3u " C_NRM CSEP \
+            C_GRN " %-20s " C_NRM CSEP C_BLU " %4s " C_NRM CSEP " %c%c\n",
+            group_name(group_id), id, name,value_type_str(vt),
             flags&F_MUTABLE?'M':' ', flags&F_PERSIST?'P':' ');
 
     return true;
@@ -839,8 +844,9 @@ static bool exec_rshow(void)
 
     rshow_header();
     while (reg->id != REGS_END) {
-        DBG(0, " %-9s| " C_YLW "%3u" C_NRM " | " C_GRN "%-20s" C_NRM \
-                " | "C_BLU "%4s" C_NRM " | %c%c\n", group_name(reg->group_id),
+        DBG(0, C_FNT " %-9s" C_NRM CSEP C_YLW " %3u " C_NRM CSEP \
+                C_GRN " %-20s " C_NRM CSEP C_BLU " %4s " C_NRM \
+                CSEP " %c%c\n", group_name(reg->group_id),
                 reg->id, reg->name, value_type_str(reg->vt),
                 reg->flags&F_MUTABLE?'M':' ', reg->flags&F_PERSIST?'P':' ');
         reg++;
@@ -1011,10 +1017,11 @@ static bool exec_vshow(void)
 
     vmem_t *vmem = vmem_table;
 
-    DBG(0, " name     |   address  |  type |   size   | flags | mirror\n");
-    DBG(0, "----------+------------+-------+----------+-------+-------\n");
+    DBG(0, C_FNT " name     |   address  |  type |   size   | flags | mirror\n");
+    DBG(0, "----------+------------+-------+----------+-------+-------\n" C_NRM);
     while (vmem->vstart != VMEM_END) {
-        DBG(0, " %-8s | 0x%08X | %-5s | %8u |  %c%c%c  | %-5s \n",
+        DBG(0, " %-8s " CSEP " 0x%08X " CSEP " %-5s " CSEP " %8u " CSEP \
+                "  %c%c%c  " CSEP " %-5s \n",
                 vmem->name,
                 vmem->vstart,
                 mem_type_str(vmem->type),

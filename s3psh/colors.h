@@ -10,6 +10,8 @@
 #define C_CYN  "\x1b[36m"
 #define C_WHT  "\x1b[37m"
 #define C_NRM  "\x1b[m"
+#define C_BLD  "\x1b[1m"
+#define C_FNT  "\x1b[2m"
 
 #endif // _COLORS_H
 
