@@ -449,7 +449,6 @@ static bool exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
         DBG(0, "(Local table not present, use 'rlist' to download it\n");
         DBG(0, "and display registers names)\n");
     }
-    DBG(0, "Response ok\n");
     return true;
 }
 
@@ -549,7 +548,6 @@ static bool exec_rstr(const uint16_t reg_id)
         DBG(0, "(Local table not present, use 'rlist' to download it\n");
         DBG(0, "and display registers names)\n");
     }
-    DBG(0, "Response ok\n");
 
     return true;
 }
@@ -611,7 +609,6 @@ static bool exec_info(void)
     DBG(0, "  reg max  : %3u\n", reg_max_id);
     DBG(0, "  regs cnt : %3u\n", regs_cnt);
     DBG(0, "  vmem maps: %3u %s\n", vmem_rows, vmem_rows?"":"(NOT SUPPORTED)");
-    DBG(0, "Response ok\n");
 
     return true;
 }
@@ -674,7 +671,6 @@ static bool exec_rinfo(const uint16_t reg_id)
     DBG(0, " %-9s| %3u | %-20s | %4s | %c%c\n", group_name(group_id),
             id, name, value_type_str(vt),
             flags&F_MUTABLE?'M':' ', flags&F_PERSIST?'P':' ');
-    DBG(0, "Response ok\n");
 
     return true;
 }
