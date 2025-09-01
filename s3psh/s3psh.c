@@ -443,12 +443,14 @@ static bool exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
         name = get_reg_name_by_id(id);
         if (VALUE_TYPE_IS_SCALAR(value.vt)) {
             value_dump(value_str, &value, VALUE_SCALAR_MAX_SIZE);
-            DBG(0, "[%3u] | %3u | %-20s | %4s | %10s\n", cnt, id, name,
-                    value_type_str(value.vt), value_str);
+            DBG(0, "[%3u] | " C_YLW "%3u" C_NRM " | " C_GRN "%-20s" \
+                    C_NRM " | " C_BLU "%4s" C_NRM " | %10s\n", cnt, id,
+                    name, value_type_str(value.vt), value_str);
         }
         else {
-            DBG(0, "[%3u] | %3u | %-20s | %4s | NOT SCALAR\n", cnt, id, name,
-                    value_type_str(value.vt));
+            DBG(0, "[%3u] | " C_YLW "%3u" C_NRM " | " C_GRN "%-20s" \
+                    C_NRM " | " C_BLU "%4s" C_NRM " NOT_SCALAR\n", cnt,
+                    id, name, value_type_str(value.vt));
         }
     }
     return true;
@@ -546,10 +548,6 @@ static bool exec_rstr(const uint16_t reg_id)
     name = get_reg_name_by_id(id);
     str_header();
     DBG(0, " %3u | %-20s | %4s | %10s\n", id, name, value_type_str(vt), str);
-    if (regs_table == NULL) {
-        DBG(0, "(Local table not present, use 'rlist' to download it\n");
-        DBG(0, "and display registers names)\n");
-    }
 
     return true;
 }
@@ -841,7 +839,8 @@ static bool exec_rshow(void)
 
     rshow_header();
     while (reg->id != REGS_END) {
-        DBG(0, " %-9s| %3u | %-20s | %4s | %c%c\n", group_name(reg->group_id),
+        DBG(0, " %-9s| " C_YLW "%3u" C_NRM " | " C_GRN "%-20s" C_NRM \
+                " | "C_BLU "%4s" C_NRM " | %c%c\n", group_name(reg->group_id),
                 reg->id, reg->name, value_type_str(reg->vt),
                 reg->flags&F_MUTABLE?'M':' ', reg->flags&F_PERSIST?'P':' ');
         reg++;
