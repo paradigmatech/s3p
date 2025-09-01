@@ -9,6 +9,7 @@
 #include <termios.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <time.h>
 #include "ser.h"
 #include "s3p.h"
 #include "value.h"
@@ -19,6 +20,8 @@
 // TODO:
 // - check for ser_write() errors
 
+#define USE_READLINE
+
 #define VER             "1.01"
 #define M_MIN(_x,_y)    ( ( (_x) > (_y) ) ? (_y) : (_x) )
 #define BYTE_DELAY      10000UL // 10ms
@@ -28,6 +31,7 @@
 #define PROMPT_OK       C_GRN "\ns3psh> " C_NRM
 #define PROMPT_ERR      C_RED "\ns3psh> " C_NRM
 #define CSEP            C_FNT "|" C_NRM
+#define IS_EQUAL(_cmd, _c)      (!strcmp(_cmd, _c))
 
 // Flags regs
 #define F_NONE          0x0000
@@ -41,9 +45,6 @@
 // End markers
 #define REGS_END        0xFFFF
 #define VMEM_END        0xFFFFFFFF
-
-#define IS_EQUAL(_cmd, _c)      (!strcmp(_cmd, _c))
-#define USE_READLINE
 
 #ifdef USE_READLINE
 #include <readline/readline.h>
@@ -1424,11 +1425,48 @@ static bool manage_cmd(const char *cmd, const char *args)
     return true;
 }
 
+#ifdef USE_READLINE
+static char *name_gen(const char *text, int state)
+{
+    static reg_t *reg;
+    static int len;
+    const char *name;
+
+    if (!state) {
+        reg = regs_table;
+        len = strlen(text);
+    }
+
+    while (reg->id != REGS_END) {
+        name = reg->name;
+        if (!strncmp(name, text, len)) {
+            reg++;
+            return strdup(name);
+        }
+        reg++;
+    }
+
+    return NULL;
+}
+
+static char **tabcomp_complete(const char *text, int start, int end)
+{
+    rl_attempted_completion_over = 1;
+    // Command completion
+    if (start == 0) {
+        // TBD
+    }
+    // Regsiters name completion
+    else {
+        if (regs_table)
+            return rl_completion_matches(text, name_gen);
+    }
+    return NULL;
+}
+#endif // USE_READLINE
+
 int main(int argc, char **argv)
 {
-#ifndef USE_READLINE
-    char cmd_line[256];
-#endif
     char cmd[16];
     uint32_t repeat;
     uint32_t parg;
@@ -1436,6 +1474,11 @@ int main(int argc, char **argv)
     char prefix;
     bool clean = false;
     bool last_ok = true;
+#ifdef USE_READLINE
+    rl_attempted_completion_function = tabcomp_complete;
+#else
+    char cmd_line[256];
+#endif
 
     DBG(0, "\nS3P Client Shell\n");
     DBG(0, "==================\n\n");
@@ -1501,8 +1544,10 @@ int main(int argc, char **argv)
     //signal(SIGTERM, catch_signal);
     signal(SIGINT, catch_signal);
 
+#ifdef USE_READLINE
     stifle_history(HISTORY_MAX_LEN);
     read_history(HISTORY_FILE);
+#endif
 
     show_help();
 
@@ -1519,7 +1564,7 @@ int main(int argc, char **argv)
         if (strlen(cmd_line) > 0)
             add_history(cmd_line);
 #else
-        char *dummy = fgets(cmd_line, sizeof(cmd_line), stdin);
+        fgets(cmd_line, sizeof(cmd_line), stdin);
 #endif
         if (cmd_line[0] == 'q') {
             DBG(0, "Quit\n");
@@ -1582,7 +1627,9 @@ exit_loop:
     }
 
 exit:
+#ifdef USE_READLINE
     write_history(HISTORY_FILE);
+#endif
 
     return 0;
 }
