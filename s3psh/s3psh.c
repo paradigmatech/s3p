@@ -18,8 +18,6 @@
 
 // TODO:
 // - check for ser_write() errors
-// - optimization: in rlist <regid> show info from local table if present
-// - optimization: in get <regid> show reg name and type from local table
 
 #define VER             "1.01"
 #define M_MIN(_x,_y)    ( ( (_x) > (_y) ) ? (_y) : (_x) )
@@ -376,6 +374,14 @@ static void rshow_header(void)
     DBG(0, "----------+-----+----------------------+------+--------\n");
 }
 
+static void rlist_down_tip(void)
+{
+    if (regs_table == NULL) {
+        DBG(0, "(Local table not present, use 'rlist' to download it\n");
+        DBG(0, "and display registers names)\n");
+    }
+}
+
 static bool exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
 {
     s3p_packet_t pkt_out;
@@ -444,10 +450,6 @@ static bool exec_rregs(const uint16_t reg_id, const uint16_t regs_cnt)
             DBG(0, "[%3u] | %3u | %-20s | %4s | NOT SCALAR\n", cnt, id, name,
                     value_type_str(value.vt));
         }
-    }
-    if (regs_table == NULL) {
-        DBG(0, "(Local table not present, use 'rlist' to download it\n");
-        DBG(0, "and display registers names)\n");
     }
     return true;
 }
@@ -1265,7 +1267,9 @@ static bool manage_cmd(const char *cmd, const char *args)
         int args_cnt = sscanf(args, "%hu+%hu", &reg_id, &regs_cnt);
         if (args_cnt == 2) {
             reg_header();
-            return exec_rregs(reg_id, regs_cnt);
+            res = exec_rregs(reg_id, regs_cnt);
+            rlist_down_tip();
+            return res;
         }
         else {
             char *dup = strdup(args);
@@ -1282,6 +1286,7 @@ static bool manage_cmd(const char *cmd, const char *args)
                     res = exec_rregs(reg_id, 1);
                 }
                 free(dup);
+                rlist_down_tip();
                 return res;
             }
             free(dup);
@@ -1329,7 +1334,9 @@ static bool manage_cmd(const char *cmd, const char *args)
             DBG(0, "Arg(s) missing or wrong\n");
             return false;
         }
-        return exec_rstr(reg_id);
+        res = exec_rstr(reg_id);
+        rlist_down_tip();
+        return res;
     }
     else if (IS_EQUAL(cmd, "sset")) {
         uint16_t reg_id;
