@@ -1,6 +1,13 @@
 S3PSH Changelog
 ===============
 
+v1.11 2025-09-10
+----------------
+
+- Fixed get/set commands not working when using auto-completed regsiters
+  names instead of ids
+
+
 v1.10 2025-09-01
 ----------------
 
