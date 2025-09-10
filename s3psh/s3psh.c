@@ -22,7 +22,7 @@
 
 #define USE_READLINE
 
-#define VER             "1.11"
+#define VER             "1.12"
 #define M_MIN(_x,_y)    ( ( (_x) > (_y) ) ? (_y) : (_x) )
 #define BYTE_DELAY      10000UL // 10ms
 #define DEF_MANAGER_ID  0x6A

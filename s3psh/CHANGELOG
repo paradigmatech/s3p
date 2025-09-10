@@ -1,6 +1,12 @@
 S3PSH Changelog
 ===============
 
+v1.12 2025-09-10
+----------------
+
+- Merged missing 230400 baud rate patch by gs-jgj
+
+
 v1.11 2025-09-10
 ----------------
 
