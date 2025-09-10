@@ -230,6 +230,20 @@ static char *get_reg_name_by_id(uint16_t id)
     return "";
 }
 
+static uint16_t get_reg_id_by_name(const char *name)
+{
+    if (regs_table != NULL) {
+        reg_t *reg = regs_table;
+        while (reg->id != REGS_END) {
+            if (!strcmp(name, reg->name))
+                return reg->id;
+            reg++;
+        }
+    }
+
+    return 0;
+}
+
 static uint8_t seq_inc(void)
 {
     seq_num++;
@@ -1278,14 +1292,28 @@ static bool manage_cmd(const char *cmd, const char *args)
     }
     else if (IS_EQUAL(cmd, "get")) {
         uint16_t reg_id, regs_cnt;
-        int args_cnt = sscanf(args, "%hu+%hu", &reg_id, &regs_cnt);
-        if (args_cnt == 2) {
-            reg_header();
-            res = exec_rregs(reg_id, regs_cnt);
-            rlist_down_tip();
-            return res;
+        char reg_name[32] = "";
+        int args_cnt;
+        // Single reg by name
+        if (isalpha(args[0])) {
+            args_cnt = sscanf(args, "%s", reg_name);
+            if (args_cnt == 1) {
+                reg_id = get_reg_id_by_name(reg_name);
+                reg_header();
+                res = exec_rregs(reg_id, 1);
+                rlist_down_tip();
+                return res;
+            }
         }
+        // Single or multiple regs by id
         else {
+            args_cnt = sscanf(args, "%hu+%hu", &reg_id, &regs_cnt);
+            if (args_cnt == 2) {
+                reg_header();
+                res = exec_rregs(reg_id, regs_cnt);
+                rlist_down_tip();
+                return res;
+            }
             char *dup = strdup(args);
             char *ptr = strtok(dup, " ");
             int cnt = 0;
@@ -1311,7 +1339,18 @@ static bool manage_cmd(const char *cmd, const char *args)
         uint16_t reg_id;
         char value_str[16];
         char vt_str[16];
-        int args_cnt = sscanf(args, "%hu %s %s", &reg_id, vt_str, value_str);
+        char reg_name[32] = "";
+        int args_cnt;
+
+        // Single reg by name
+        if (isalpha(args[0])) {
+            args_cnt = sscanf(args, "%s %s %s", reg_name, vt_str, value_str);
+            reg_id = get_reg_id_by_name(reg_name);
+        }
+        // Single reg by id
+        else {
+            args_cnt = sscanf(args, "%hu %s %s", &reg_id, vt_str, value_str);
+        }
         if (args_cnt != 3) {
             DBG(0, "Arg(s) missing or wrong\n");
             return false;
@@ -1343,7 +1382,17 @@ static bool manage_cmd(const char *cmd, const char *args)
     }
     else if (IS_EQUAL(cmd, "sget")) {
         uint16_t reg_id;
-        int args_cnt = sscanf(args, "%hu", &reg_id);
+        char reg_name[32] = "";
+        int args_cnt;
+        // Single reg by name
+        if (isalpha(args[0])) {
+            args_cnt = sscanf(args, "%s", reg_name);
+            reg_id = get_reg_id_by_name(reg_name);
+        }
+        // Single reg by id
+        else {
+            args_cnt = sscanf(args, "%hu", &reg_id);
+        }
         if (args_cnt != 1) {
             DBG(0, "Arg(s) missing or wrong\n");
             return false;
@@ -1355,7 +1404,17 @@ static bool manage_cmd(const char *cmd, const char *args)
     else if (IS_EQUAL(cmd, "sset")) {
         uint16_t reg_id;
         char str[32];
-        int args_cnt = sscanf(args, "%hu %s", &reg_id, str);
+        char reg_name[32] = "";
+        int args_cnt;
+        // Single reg by name
+        if (isalpha(args[0])) {
+            args_cnt = sscanf(args, "%s %s", reg_name, str);
+            reg_id = get_reg_id_by_name(reg_name);
+        }
+        // Single reg by id
+        else {
+            args_cnt = sscanf(args, "%hu %s", &reg_id, str);
+        }
         if (args_cnt != 2) {
             DBG(0, "Arg(s) missing or wrong\n");
             return false;
@@ -1602,6 +1661,8 @@ int main(int argc, char **argv)
             args_off = strlen(cmd);
         }
 
+        // Skip space
+        args_off++;
         ctrlc = 0;
         while (!ctrlc) {
             ser_discard(&ser);
