@@ -20,8 +20,6 @@
 // TODO:
 // - check for ser_write() errors
 
-#define USE_READLINE
-
 #define VER             "1.12"
 #define M_MIN(_x,_y)    ( ( (_x) > (_y) ) ? (_y) : (_x) )
 #define BYTE_DELAY      10000UL // 10ms
@@ -123,13 +121,14 @@ static void dump_ts(void)
 static void show_usage(char **argv)
 {
     DBG(0, "\n");
-    DBG(0, "Usage: %s [-a] [-d[d]] [-i id] [-m id] <ser_dev>\n", argv[0]);
+    DBG(0, "Usage: %s [-a] [-d[d]] [-i id] [-m id] [-c command] <ser_dev>\n", argv[0]);
     DBG(0, "\n");
     DBG(0, "Where:\n");
     DBG(0, "  -a          enable advanced/debug commands\n");
     DBG(0, "  -d[d]       enable debug. More verbose with -dd\n");
     DBG(0, "  -i id       id/serial address of the remote node\n");
     DBG(0, "  -m id       id/serial address of the manager (this app)\n");
+    DBG(0, "  -c command  execute a single command and exit\n");
     DBG(0, "  <ser_dev>   serial device (e.g. /dev/ttyUSB0\n");
     DBG(0, "\n\n");
 }
@@ -1533,6 +1532,7 @@ int main(int argc, char **argv)
     char prefix;
     bool clean = false;
     bool last_ok = true;
+    char* single_command = NULL;
 #ifdef USE_READLINE
     rl_attempted_completion_function = tabcomp_complete;
 #else
@@ -1572,6 +1572,12 @@ int main(int argc, char **argv)
             argc--;
             argc--;
         }
+        if (argc>2 && !strcmp(argv[1], "-c")) {
+            single_command = argv[2];
+            argv = &argv[2];
+            argc--;
+            argc--;
+        }
     }
 
     if (argc < 2) {
@@ -1602,6 +1608,16 @@ int main(int argc, char **argv)
     //DBG("\nInteractive console. Press CTRL-C to exit\n");
     //signal(SIGTERM, catch_signal);
     signal(SIGINT, catch_signal);
+
+    if (single_command != NULL) {
+        int args_cnt = sscanf(single_command, "%s ", cmd);
+        if (args_cnt < 1)
+            return -1;
+        args_off = strlen(cmd);
+        if (manage_cmd(cmd, single_command+args_off))
+            goto exit;
+        return -1;
+    }
 
 #ifdef USE_READLINE
     stifle_history(HISTORY_MAX_LEN);
