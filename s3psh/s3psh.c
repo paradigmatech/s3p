@@ -26,8 +26,8 @@
 #define DEF_MANAGER_ID  0x6A
 #define DEF_NODE_ID     0x2A
 #define RESP_TO_MS      10000
-#define PROMPT_OK       C_GRN "\ns3psh> " C_NRM
-#define PROMPT_ERR      C_RED "\ns3psh> " C_NRM
+#define PROMPT_OK       C_GRN "\ns3psh %u->%u > " C_NRM
+#define PROMPT_ERR      C_RED "\ns3psh %u->%u > " C_NRM
 #define CSEP            C_FNT "|" C_NRM
 #define IS_EQUAL(_cmd, _c)      (!strcmp(_cmd, _c))
 #define DEF_BAUDRATE    230400
@@ -1525,6 +1525,14 @@ static char **tabcomp_complete(const char *text, int start, int end)
 }
 #endif // USE_READLINE
 
+static const char *prompt(const bool ok)
+{
+    static char p[32];
+    snprintf(p, sizeof(p), ok ? PROMPT_OK : PROMPT_ERR,
+            manager_id, node_id);
+    return p;
+}
+
 int main(int argc, char **argv)
 {
     char cmd[16];
@@ -1638,11 +1646,11 @@ int main(int argc, char **argv)
     while (1) {
 #ifndef USE_READLINE
         memset(cmd_line, 0x00, sizeof(cmd_line));
-        DBG(0, last_ok ? PROMPT_OK : PROMPT_ERR);
+        DBG(0, prompt(last_ok));
 #endif
 
 #ifdef USE_READLINE
-        char *cmd_line = readline(last_ok ? PROMPT_OK : PROMPT_ERR);
+        char *cmd_line = readline(prompt(last_ok));
         if (cmd_line == NULL)
             continue;
         if (strlen(cmd_line) > 0)
