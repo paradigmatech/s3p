@@ -30,6 +30,7 @@
 #define PROMPT_ERR      C_RED "\ns3psh> " C_NRM
 #define CSEP            C_FNT "|" C_NRM
 #define IS_EQUAL(_cmd, _c)      (!strcmp(_cmd, _c))
+#define DEF_BAUDRATE    230400
 
 // Flags regs
 #define F_NONE          0x0000
@@ -121,9 +122,10 @@ static void dump_ts(void)
 static void show_usage(char **argv)
 {
     DBG(0, "\n");
-    DBG(0, "Usage: %s [-a] [-d[d]] [-i id] [-m id] [-c command] <ser_dev>\n", argv[0]);
+    DBG(0, "Usage: %s [-b] [-a] [-d[d]] [-i id] [-m id] [-c command] <ser_dev>\n", argv[0]);
     DBG(0, "\n");
     DBG(0, "Where:\n");
+    DBG(0, "  -b          set baudrate (default %u)\n", DEF_BAUDRATE);
     DBG(0, "  -a          enable advanced/debug commands\n");
     DBG(0, "  -d[d]       enable debug. More verbose with -dd\n");
     DBG(0, "  -i id       id/serial address of the remote node\n");
@@ -1533,6 +1535,7 @@ int main(int argc, char **argv)
     bool clean = false;
     bool last_ok = true;
     char* single_command = NULL;
+    int baudrate = DEF_BAUDRATE;
 #ifdef USE_READLINE
     rl_attempted_completion_function = tabcomp_complete;
 #else
@@ -1578,6 +1581,12 @@ int main(int argc, char **argv)
             argc--;
             argc--;
         }
+        if (argc>2 && !strcmp(argv[1], "-b")) {
+            baudrate = atoi(argv[2]);
+            argv = &argv[2];
+            argc--;
+            argc--;
+        }
     }
 
     if (argc < 2) {
@@ -1597,7 +1606,7 @@ int main(int argc, char **argv)
 
     // Open port
     DBG(0, "Opening serial port '%s'\n", argv[1]);
-    int res = ser_open(&ser, argv[1], 230400, 'N', 8, 1);
+    int res = ser_open(&ser, argv[1], baudrate, 'N', 8, 1);
     if (res) {
         DBG(0, "Error opening serial port, res=%d\n", res);
         return -1;
