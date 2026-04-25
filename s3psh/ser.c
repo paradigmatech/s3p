@@ -26,8 +26,6 @@ int ser_open(struct ser_struct * const ser,
         const uint8_t data_bit, const uint8_t stop_bit)
 {
     struct termios tios;
-    speed_t speed;
-    int cust_br = 0;
 
     // TODO
     // check parameters for errors
@@ -57,50 +55,14 @@ int ser_open(struct ser_struct * const ser,
 
     memset(&tios, 0, sizeof(struct termios));
 
-    switch (ser->baud) {
-        case 110: speed = B110; break;
-        case 300: speed = B300; break;
-        case 600: speed = B600; break;
-        case 1200: speed = B1200; break;
-        case 2400: speed = B2400; break;
-        case 4800: speed = B4800; break;
-        case 9600: speed = B9600; break;
-        case 19200: speed = B19200; break;
-        case 38400: speed = B38400; break;
-        case 57600: speed = B57600; break;
-        case 115200: speed = B115200; break;
-        case 230400: speed = B230400; break;
-        case 460800: speed = B460800; break;
-        default:
-#if 0
-            speed = B9600;
-            SER_DBG("WARNING Unknown baud rate %d for %s (B9600 used)\n",
-                    ser->baud, ser->device);
-#else
-            SER_DBG("WARNING Custom baud rate %d for %s\n", ser->baud, ser->device);
-            cust_br = 1;
-#endif
-    }
-
     // Set serial parameters
-    if (cust_br) {
-        struct termios2 tio;
-        ioctl(ser->fd, TCGETS2, &tio);
-        tio.c_cflag &= ~CBAUD;
-        tio.c_cflag |= BOTHER;
-        tio.c_ispeed = ser->baud;
-        tio.c_ospeed = ser->baud;
-        ioctl(ser->fd, TCSETS2, &tio);
-    }
-    else {
-        if ((cfsetispeed(&tios, speed) < 0) ||
-                (cfsetospeed(&tios, speed) < 0)) {
-            close(ser->fd);
-            ser->fd = -1;
-            return -1;
-        }
-    }
-
+    struct termios2 tio;
+    ioctl(ser->fd, TCGETS2, &tio);
+    tio.c_cflag &= ~CBAUD;
+    tio.c_cflag |= BOTHER;
+    tio.c_ispeed = ser->baud;
+    tio.c_ospeed = ser->baud;
+    ioctl(ser->fd, TCSETS2, &tio);
 
     tios.c_cflag |= (CREAD | CLOCAL);
     tios.c_cflag &= ~CSIZE;
