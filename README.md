@@ -90,7 +90,7 @@ Installation
 
 Clone the repository:
 
-- git clone https://github.com/Paradigma-Technologies/S3P.git
+- git clone https://github.com/paradigmatech/s3p.git
 - Include the S3P library or code in your project.
 - Configure your hardware for RS422 or RS485 communication (see Usage
     (#usage) for details).
